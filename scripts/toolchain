@@ -1,0 +1,73 @@
+#!/usr/bin/env ruby
+
+require 'rake'
+require 'optparse'
+
+MYDIR = File.dirname(File.absolute_path $0)
+MYNAME = $0.split('/')[-1]
+
+def bad_usage
+  raise $opt
+end
+
+class OptionKeeper < OptionParser
+  def initialize
+    super
+    @options = Hash.new
+  end
+  def [] key
+    @options[key]
+  end
+  def []= key, value
+    @options[key] = value
+  end
+end
+
+$opt = OptionKeeper.new
+$opt.banner "USAGE: #{MYNAME} [-f SPECFILE] [ACTION]..."
+$opt.on("-f SPECFILE") do |spec|
+  $self[:spec] = File.absolute_path spec
+end
+
+def mk_source_task
+  task "SOURCE" => 
+
+def init_rake_target
+  ARGV.unshift "default" if ARGV.empty?
+  raise "Only one action argument is supported yet" unless ARGV.size == 1
+  set = []
+  actions = []
+  ARGV.each do |arg|
+    raise "Why on earth would you mention the same action (#{arg}) twice?" if set.include?(arg)
+    set << arg
+    case arg
+    when "default"
+      actions << mk_config_task
+    when "source"
+      actions << mk_source_task
+    when "config"
+      actions << mk_config_task
+    when "build"
+      actions << mk_build_task
+    end
+  end
+  $rake_target = task "TOPLEVEL_TARGET" => *actions
+end
+
+def parse_args
+  $opt.parse! ARGV
+  $opt[:spec] ||= "#{Dir.pwd}/SPEC"
+  init_rake_target()
+end
+
+def doall
+  parse_specfile()
+  $rake_target.invoke()
+end
+
+def main
+  parse_args()
+  doall()
+end
+
+main

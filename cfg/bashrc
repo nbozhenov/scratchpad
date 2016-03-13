@@ -1,0 +1,275 @@
+source ~/SkyDrive/code/bash/harness.sh
+
+# remove directories inside ${HOME} from PATH
+export PATH=`echo $PATH | while read -d: path; do
+  if [ "${path:0:${#HOME}}" != "$HOME" ]; then
+    echo $path
+  fi
+done | y_merge :`
+
+#
+# Инфа по xterm control sequences
+# http://invisible-island.net/xterm/ctlseqs/ctlseqs.html
+# 
+# Таблица цветов легко гуглится по запросу "xterm 256 colors"
+#
+#
+# Пара \[ и \] говорит башу, что то, что между ними, не надо учитывать при подсчете длины приглашения
+#
+
+# COLOR = "\e[PARAMSm"
+# PARAMS= PARAM | PARAMS;PARAM
+# PARAM = 0 (normal)
+#         1 (bold)
+#         4 (underline)
+#        30 (black)
+#        31 (red)
+#        32 (green)
+#        33 (yellow)
+#        34 (blue)
+#        35 (purple)
+#        36 (cyan)
+#        37 (white)
+#
+#        4x (background color)
+#        9x (high intensity)
+#
+# EXAMPLES: \e[0m       # no color (reset colors)
+#           \e[4;32;46  # green, underline, on cyan
+
+function y-pretty-time {
+    local seconds=`echo "scale=0; $1/1" | bc`
+    local mseconds=`echo "scale=0; ($1 - $seconds) * 100 / 1" | bc`
+    local minutes=$(($seconds/60))
+    local hours=$(($minutes/60))
+
+    seconds=$(($seconds - (60 * $minutes)))
+    minutes=$(($minutes - (60 * $hours)))
+
+    if [ $hours -ne 0 ]; then
+        hours=$(printf "%02d:" $hours)
+    else
+        hours=
+    fi
+
+    minutes=$(printf "%02d:" $minutes)
+    seconds=$(printf "%02d." $seconds)
+    mseconds=$(printf "%02d" $mseconds)
+
+    echo "${hours}${minutes}${seconds}${mseconds}"
+}
+
+function y-gen-ps1 {
+
+    local rcd="$1"    # код возврата последней команды
+
+    local no_color="\[\e[0m\]"
+    local grey="\[\e[38;5;240m\]"
+    local green="\[\e[38;5;40m\]"
+    #local bgreen="\[\e[1;38;5;28m\]"
+    local bgreen="\[\e[1;32m\]"
+    local red="\[\e[38;5;196m\]"
+    #local bred="\[\e[1;38;5;196m\]"
+    local bred="\[\e[1;31m\]"
+    #local bbrown="\[\e[1;38;5;94m\]"
+    local bbrown="\[\e[1;33m\]"
+    local purple="\[\e[38;5;165m\]"
+    #local bpurple="\[\e[1;38;5;57m\]" # тоже хороший вариант для prompt-а
+    local bpurple="\[\e[1;35m\]"
+
+    if [ -n "$INSIDE_EMACS" ]; then
+        green="\[\e[0;32m\]"
+        bgreen=""
+    fi
+
+    local sigtstp=$((128 + $(kill -l SIGTSTP)))
+
+    local prompt_color=
+    local user=`whoami`
+    local host=`hostname`
+    local pwdir=$(pwd | sed -e "s|^${HOME}|~|")
+
+    local last_color= # цвет инфы о последней команде
+    local last_time=  # строка с инфой о времени последней команды
+    local rc=         # строка с инфой о коде возврата последней команды
+    local last_full=  # строка с совместной инфой о последней команде
+
+    local prompt="\$" # может быть $ или #
+
+    # [ -n "$SSH_CONNECTION" ] || ssh_flag=false
+
+    # deal with user
+    if [ "$host" = "$MY_HOSTNAME" ] && [ "$user" = "$MY_USER" ]; then
+        prompt_color="$bgreen"
+    elif [ "$user" = "root" ]; then
+        prompt="#"
+        prompt_color="$bred"
+    else
+        prompt_color="$bbrown"
+    fi
+
+    # deal with rc
+    if [ "$rcd" -eq 0 ]; then
+        last_color="$green"
+        rc="=> 0 " # необязательная строчка
+    elif [ "$rcd" -eq "$sigtstp" ]; then
+        last_color="$grey"
+        rc="=> SIGTSTP "
+    elif [ "$rcd" -gt 128 ]; then
+        last_color="$red"
+        local signame=`kill -l $(($rcd - 128)) 2>/dev/null`
+        if [ $? -eq 0 ] && [ -n "$signame" ]; then
+            rc="=> SIG${signame} "
+        else
+            rc="=> ${rcd} "
+        fi
+    else
+        last_color="$red"
+        rc="=> ${rcd} "
+    fi
+
+    # deal with time
+    last_time="$(y-pretty-time "$y_timer_external") "
+    unset y_timer_external
+        
+    # combine time and rc
+    if [ -n "$last_time" ] || [ -n "$rc" ]; then
+        last_full="[ ${last_time}${rc}]"
+    fi
+
+    # collect jobs
+    local jobs=$(jobs -l)
+
+    local first_part="${last_color}${last_full}${no_color}\n"
+    local second_part=${jobs:+"${bpurple}[ $(jobs | wc -l) ]${no_color} "}
+
+    # check version control systems
+    if [ -a CVS ]; then
+       second_part="${second_part}${bred}[ cvs ]${no_color} "
+    fi
+    if [ -a .svn ]; then
+       second_part="${second_part}${bred}[ svn ]${no_color} "
+    fi
+
+    local third_part="${prompt_color}${user}@${host}:${pwdir}${no_color}\n"
+    local fourth_part="${prompt_color}${prompt} ${no_color}"
+    PS1="${first_part}${third_part}${second_part}${fourth_part}"
+}
+
+function y-timer-start {
+    y_timer_internal=${y_timer_internal:-"$(date +%s.%N)"}
+}
+
+function y-timer-stop {
+    local rcd=$?
+    local now=`date +%s.%N`
+    y_timer_external=`echo "scale=2; $now - $y_timer_internal" | bc`
+    unset y_timer_internal
+    y-gen-ps1 $rcd
+    return $rcd
+}
+
+###############
+# MY_DIRSTACK #
+###############
+
+alias dirs=my_dirs
+MY_DIRSTACK=()
+
+function my_dir_at {
+    # invalid usage
+    if [ $# -ne 1 ] ||
+        (echo "$1" | grep -vq '^[[:digit:]]\+$') ||
+        [ $1 -lt 0 ]; then
+        echo "my_dir_at: Internal error" >&2
+        return 13
+    fi
+
+    # too big index
+    if [ $1 -ge ${#MY_DIRSTACK[@]} ]; then
+        return 1
+    fi
+
+    # all right
+    echo ${MYDIRSTACK[$1]}
+    return 0
+}
+
+function my_dirs_usage {
+    cat <<EOF
+USAGE: dirs -- COMMAND [PARAMS...]
+
+COMMANDS:
+    list                    show numbered list of all saved paths
+    go NUM                  go to the NUM-th path in the list
+    go ALIAS                go to the path which has alias ALIAS
+    add PATH [alias ALIAS]  add new PATH to the list
+    alias NUM ALIAS         add alias ALIAS for the NUM-th path
+    alias NUM               discard alias for the NUM-th path
+    rm NUM                  remove the NUM-th path from the list
+    rm ALIAS                remove path from the list
+
+SHORTCUTS:
+    dirs                    dirs -- list
+    dirs NUM                dirs -- go NUM
+    dirs PATH               dirs -- add PATH
+EOF
+}
+
+function my_dirs {
+    if [ $# -eq 0 ]; then
+        : # list directories
+    elif [ $# -eq 2 ] && [ "$1" = "--" ]; then
+        : # cd to $2-th directory
+    elif [ $# -eq 1 ] && $(echo "$1" | grep -q '^[[:digit:]]\+$'); then
+        : # cd to $1-th directory
+    elif [ $# -eq 1 ]; then
+        : # add $1 to MY_DIR_LIST and cd to it
+    else
+        : # user invalid
+    fi
+}
+    
+
+trap y-timer-start DEBUG
+PROMPT_COMMAND=y-timer-stop
+
+export TERM=xterm-256color
+export VISUAL=vi
+export EDITOR=vi
+set -o vi
+stty -ixon -ixoff # disable resume/pause in term, so C-s can be used to search history forward
+
+if [ -z "$TMUX" ] && [ "$HOSTNAME" = "$MY_HOSTNAME" ] && [ -z "$INSIDE_EMACS" ]; then
+    true #tmux
+fi
+
+function tags {
+    etags --no-members --ignore-indentation --declarations -lc++ --regex=@tag.rules `./tag.files`
+    ./tag.fix TAGS
+}   
+
+#alias git-topology="git log --graph --simplify-by-decoration --branches --remotes --tags --pretty='%h %ci %d'"
+alias git-topology="gitk --simplify-by-decoration --branches --remotes --tags"
+
+git-mark-fork () {
+    if [ $# -ne 2 ]; then
+        echo "USAGE: $0 COMMIT COMMIT" >&2
+        return 1
+    fi
+
+    #fork=`git merge-base $1 $2`
+    fork=`git show-branch --merge-base $1 $2`
+    if [ $? -ne 0 ]; then
+        return $?
+    fi
+
+    name="${fork:0:8}"
+    git tag "$name" "$fork"
+}
+
+
+[ -f ~/PATH ] && y_append PATH `bash ~/SkyDrive/code/scripts/print-binpath ~/PATH`
+
+# for docear.sh
+export _JAVA_OPTIONS='-Dawt.useSystemAAFontSettings=on'

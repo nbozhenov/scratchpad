@@ -1,0 +1,70 @@
+#!/bin/bash
+set -o errexit
+set -o nounset
+
+###
+# git-hook
+# When another branch is checked out, this scripts either 
+# hides all CVS dirs (if checked out branch is not 'master')
+# or restores all CVS dirs (if checked out branch is 'master')
+#
+
+repodir=`git rev-parse --show-toplevel`
+backupdir="${repodir}/my_cvs_backup"
+
+hide_cvs() {
+    echo "hiding cvs..."
+    cvs_count=0
+
+    for dir in $(find ${repodir} -not -path "${backupdir}*" -and -name CVS); do
+        # "./CVS" -> "CVS" -> "" -> ""
+        sed_expr="s|^${repodir}/||"
+        rel_path=$(echo "$dir" | sed -e "${sed_expr}" | sed -e 's/CVS$//' | sed -e 's/\/$//') # without tail CVS
+        new_path="${backupdir}/$rel_path"
+        new_path=$(echo "$new_path" | sed -e 's/\/$//') # for cases where $rel_path is empty string now
+        #echo "mkdir -p $new_path"
+        mkdir -p "$new_path"
+        
+        #echo "mv $dir $new_path/CVS"
+        mv "$dir" "$new_path/CVS"
+        cvs_count=$((cvs_count + 1))
+    done
+
+    echo "$cvs_count CVS dirs hidden"
+
+    # some checking
+    count=$(find ${repodir} -not -path "${backupdir}*" -and -name CVS | wc -l)
+    if [ $count -ne 0 ]; then
+        echo ".git/hooks/post-checkout: ERROR: hide_cvs() failed" >&2
+        exit 1
+    fi
+}
+
+restore_cvs() {
+    echo "restoring cvs..."
+    cvs_count=0
+
+    for dir in $(find "${backupdir}" -name CVS); do
+        sed_expr="s|^${backupdir}/||"
+        rel_path=$(echo "$dir" | sed -e "${sed_expr}") # with tail CVS
+
+        #echo "mv $dir ${repodir}/$rel_path"
+        mv "$dir" "${repodir}/$rel_path"
+        cvs_count=$((cvs_count + 1))
+    done
+
+    echo "$cvs_count CVS dirs restored"
+
+    # some checking
+    count=$(find "${backupdir}" -name CVS | wc -l)
+    if [ $count -ne 0 ]; then
+        echo ".git/hooks/post-checkout: ERROR: restore_cvs() failed" >&2
+        exit 1
+    fi
+}
+
+if git status | grep -q '^# On branch master'; then
+    restore_cvs
+else
+    hide_cvs
+fi

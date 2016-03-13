@@ -1,0 +1,15 @@
+#!/bin/bash
+shopt -s nullglob
+
+etags --no-members -o TAGS --language=c++ \
+  c-family/*.h c-family/*.c *.h *.c *.cc ../include/*.h config/**/*.c config/**/*.h \
+  --language=none --regex="/\(char\|unsigned int\|int\|bool\|void\|HOST_WIDE_INT\|enum [A-Za-z_0-9]+\) [*]?\([A-Za-z_0-9]+\)/\2/" common.opt   \
+  --language=none --regex="/\(DEF_RTL_EXPR\|DEFTREECODE\|DEFGSCODE\).*(\([A-Za-z_0-9]+\)/\2/" rtl.def tree.def gimple.def \
+  --language=none --regex="/DEFTIMEVAR (\([A-Za-z_0-9]+\)/\1/" timevar.def \
+  --language=none --regex="/REG_NOTE (\([A-Za-z_O-9]+\))/REG_\1/"  reg-notes.def \
+  --language=c++ `find ../../gcc.build -name '*.c' -or -name '*.h'`
+
+tmpfile=`mktemp`
+sed -e 's/ GCC_FINAL.*//g' TAGS > $tmpfile
+cat $tmpfile > TAGS
+rm $tmpfile

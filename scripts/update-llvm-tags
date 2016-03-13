@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+set -o nounset
+set -o errexit
+
+function log() {
+    echo "$@" >&2
+}
+
+function runcmd() {
+    log ">>> $@"
+    eval "$@"
+}
+
+function create_tags_td() {
+    find include/llvm/Target lib/Target/ARM -name \*.td |                      \
+        xargs -n32 etags -a -o tags.td -l none                                 \
+        --regex='/class[[:space:]]+\([[:alnum:]_]+\)/\1/'                      \
+        --regex='/multiclass[[:space:]]+\([[:alnum:]_]+\)/\1/'
+}
+
+function create_tags_tblgen() {
+    ../llvm.build/bin/llvm-tblgen -gen-ctags                        \
+        -I include -I lib/Target/ARM                                           \
+        -o tags.tblgen lib/Target/ARM/ARM.td
+    script.tx -o tags.tblgen.fix --cin tags.tblgen                             \
+        --update-tagtext-lazily                                                \
+        --delete-if-tagname '/^anonymous\.[.\w]*$/'
+}
+
+function find_etags_files_helper() {
+    local SEARCHDIR="$1"
+    local EXTENSION="$2"
+    find "$SEARCHDIR" \( -path "$SEARCHDIR"/test                  -or          \
+                         -path "$SEARCHDIR"/unittests             -or          \
+                         -path "$SEARCHDIR"/tools/clang                        \
+                      \) -prune -or -name \*.${EXTENSION} -print
+}
+
+function find_etags_files() {
+    # хочу, чтобы хедеры парсились раньше остальных файлов
+    find_etags_files_helper . h
+    find_etags_files_helper ../llvm.build inc
+    find_etags_files_helper . cpp
+}
+
+#function create_tags_etags() {
+#    find_etags_files | xargs -n32                                              \
+#        etags -a -o tags.etags                                                 \
+#        --no-members --ignore-indentation --declarations -lc++                 \
+#        --regex='/\(class\|struct\|union\)[[:space:]]+LLVM_LIBRARY_VISIBILITY \([[:alnum:]_]+\)/\2/'
+#    script.tx -o tags.etags.fix --ein tags.etags                               \
+#        --delete-if-tagtext '/^\s*(class|struct|union)\s+\b\w+\b\s*;\s*$/'
+#    script.tx -o tags.etags.fix --ein tags.etags.fix --update-tagtext-strictly
+#}
+    
+        #ctags -a -o tags.etags --excmd=number --c++-kinds=+px-m --c-kinds=+px-m
+function create_tags_etags() {
+    # TODO: use regexp instead of linenumbers (--excmd=number)
+    find_etags_files | xargs                                                   \
+        ctags -a -o tags.etags --excmd=number --c++-kinds=+px-m --c-kinds=+px  \
+        --language-force=c++                                                   \
+        -I LLVM_LIBRARY_VISIBILITY -I override                                 \
+        --regex-c++='/STATISTIC[[:space:]]*(\([[:space:]]*[[:alnum:]_]*\).*)/\1/v/b'
+    script.tx -o tags.etags.fix --cin tags.etags --update-tagtext-strictly     \
+        --delete-if-tagtext '/^\s*(class|struct|union)\s+\b\w+\b\s*;\s*$/'
+}
+    
+function merge_tags() {
+    script.tx --ein tags.td --ein tags.tblgen.fix --ein tags.etags.fix --overwrite \
+              --update-tagtext-strictly -o TAGS
+}
+
+runcmd rm -f TAGS tags.etags tags.etags.fix tags.td tags.tblgen tags.tblgen.fix
+
+log ">>> creating tags.td"
+create_tags_td
+
+log ">>> creating tags.tblgen"
+create_tags_tblgen
+
+log ">>> creating tags.etags"
+create_tags_etags
+
+log ">>> merging tags"
+merge_tags
+

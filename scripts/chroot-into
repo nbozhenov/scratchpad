@@ -1,0 +1,11 @@
+#!/usr/bin/env ruby
+
+MYDIR = File.dirname(File.absolute_path $0)
+MYNAME = $0.split('/')[-1]
+IMPLNAME = File.join(MYDIR, "#{MYNAME}-impl")
+
+C = RbConfig::CONFIG
+INAME = File.join(C["bindir"], C["RUBY_INSTALL_NAME"] + C["EXEEXT"])
+
+exec "sudo", INAME, IMPLNAME, *ARGV
+

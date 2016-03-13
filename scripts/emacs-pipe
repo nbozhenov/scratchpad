@@ -1,0 +1,49 @@
+#!/bin/bash
+set -o nounset
+#set -o errexit # emacs and rm may return non-zero code, it's all right.
+
+# arguments to be passed to emacs
+args[0]="-q"
+args[1]="-nw"
+args[2]="-t"
+args[3]="/dev/tty"
+args[4]="-l"
+args[5]="~/.emacs"
+# index in 'args' array
+count=5
+# whether "-" argument was encountered
+use_stdin=
+# name for tmp-file to be used in case of "-" argument
+tmpname=
+
+# scanning through command line arguments looking for "-"
+for param in "$@"; do
+    count=$((count + 1))
+    # it's easier to ignore multiple "-"s than report some error
+    if [ "$param" = "-" ]; then
+        use_stdin="true"
+    else
+        args[$count]="$param"
+    fi
+done
+
+# check whether we should read stdin
+if [ -n "$use_stdin" ]; then
+    tmpname=$(mktemp)
+    cat <&0 > "$tmpname"
+    count=$((count + 1))
+    args[$count]="$tmpname"
+fi
+
+# run emacs
+emacsclient "${args[@]}"
+# save return code
+rc=$?
+
+# clean tmpfile
+if [ -n "$tmpname" ]; then
+    rm "$tmpname"
+fi
+
+exit $rc
+

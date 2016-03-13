@@ -1,0 +1,75 @@
+#!/usr/bin/env ruby
+
+TEMPLATE = '"msg-#{$fileno}.txt"'
+$fileno = 0
+$lineno = 0
+$output = nil
+$input  = nil
+
+FST_LINE_REGEX = /^From .*[[:digit:]]{2}:[[:digit:]]{2} [[:digit:]]{4}$/
+SND_LINE_REGEX = /^From: .*$/
+TRD_LINE_REGEX = /^Date: .*$/
+
+def assert cond, desc = "Assertion failed near the line #{$lineno}"
+    return nil if cond
+    $stderr.puts desc
+    exit 13
+end
+
+BUF = [ nil, nil, nil ]
+def BUF.push line
+    BUF << line
+    if out = BUF.shift
+        $lineno += 1
+        $output.puts out
+    end
+    BUF
+end
+
+def BUF.flush
+    while BUF[0]
+        BUF.push nil
+    end
+end
+
+def find_mail str
+    mch = /([[:graph:]]+) at ([[:graph:]]+)/.match str
+    if mch
+        "#{mch.pre_match}#{mch[1]}@#{mch[2]}#{mch.post_match}"
+    else
+        str
+    end
+end
+
+def start_new_file
+    $fileno += 1
+    if $output
+        $output.close
+    end
+    filename = eval TEMPLATE
+    assert (!File.exists? filename), "File '#{filename}' already exists"
+    $output = File.open filename, "w"
+end
+
+def newline line
+    BUF.push line
+    if BUF[0] and BUF[0] =~ FST_LINE_REGEX
+        assert (BUF[1] =~ SND_LINE_REGEX)
+        assert (BUF[2] =~ TRD_LINE_REGEX)
+        BUF[0] = find_mail BUF[0]
+        BUF[1] = find_mail BUF[1]
+        start_new_file
+    end
+end
+
+ARGV.each do |arg|
+    assert (arg =~ /.mlist$/), "File extension should be 'mlist' but got '#{arg}'"
+    assert File.exists?(arg), "File '#{arg}' already exists"
+    $filename = arg
+    $lineno = 0
+    $input = File.open arg
+    while line = $input.gets
+        newline line
+    end
+end
+BUF.flush

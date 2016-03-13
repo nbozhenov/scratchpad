@@ -1,0 +1,86 @@
+" по умолчанию - латинская раскладка
+set iminsert=0
+" по умолчанию - латинская раскладка при поиске
+set imsearch=0
+" игнорировать регистр при поиске
+" set ic
+" подсвечивать поиск
+set hls
+" использовать инкрементальный поиск
+set is
+" don't scan past end or top of file in searches
+set nowrapscan
+" search highligh colors
+hi Search cterm=NONE ctermfg=black ctermbg=grey
+" ширина текста 
+" set textwidth=70
+" минимальная высота окна пусть будет 0 (по умолчанию - 1)
+set winminheight=0
+" высота командной строки
+set cmdheight=1
+" resize windows equally after splitting or closing
+set equalalways
+set eadirection=hor
+" установить шрифт Courier New Cyr
+" set guifont=courier_new:h10:cRUSSIAN
+" настраиваю для работы с русскими словами (чтобы w, b, * понимали
+" русские слова)
+" set iskeyword=@,48-57,_,192-255
+" задать размер табуляции
+set ts=8
+" величина отступа
+set shiftwidth=2
+" отображение выполняемой команды
+set showcmd 
+" перенос по словам, а не по буквам
+set linebreak
+set dy=lastline
+set wildignore="*.o"
+set wildmode=list:longest
+" enable mouse
+" set mouse=a
+
+" set langmap=ёйцукенгшщзхъфывапролджэячсмитьбюЁЙЦУКЕHГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮ;`qwertyuiop[]asdfghjkl\\;'zxcvbnm\\,.~QWERTYUIOP{}ASDFGHJKL:\\"ZXCVBNM<>
+
+set encoding=utf-8                                  " set charset translation encoding
+set termencoding=utf-8                              " set terminal encoding
+" set fileencoding=utf-8                              " set save encoding
+set fileencodings=utf8,cp866,koi8r,cp1251,ucs-2le   " список предполагаемых кодировок, в порядке предпочтения
+
+set laststatus=2   " всегда показывать строку статуса
+set statusline=%f%m%r%h%w\ %y\ enc:%{&enc}\ fenc:%{&fenc}%=\ line:%l/%L[%p%%]\ col:%v
+
+map <F8> [I:let nr = input("Which one: ")<Bar>exe"normal".nr."[\t"<CR>
+
+" Меню для переключения кодировок
+set wildmenu
+set wcm=<Tab>
+menu Encoding.koi8-r       :set enc=koi8-r<CR>     :e ++enc=koi8-r ++ff=unix<CR>
+menu Encoding.windows-1251 :set enc=cp1251<CR>     :e ++enc=cp1251 ++ff=dos<CR>
+menu Encoding.cp866        :set enc=8bit-cp866<CR> :e ++enc=cp866 ++ff=dos<CR>
+menu Encoding.utf-8        :set enc=utf8<CR>       :e ++enc=utf8 <CR>
+menu Encoding.koi8-u       :set enc=koi8-u<CR>     :e ++enc=koi8-u ++ff=unix<CR>
+map <F8> :emenu Encoding.<TAB>
+
+" забиваем TAB пробелами и устанавливаем ширину TAB'а
+set expandtab
+set tabstop=8
+
+" автоотступы
+set smartindent
+
+" turn on automatic filetype detection
+filetype on
+filetype plugin on
+filetype indent on
+syntax on
+
+" markdown
+au BufNewFile,BufRead *.page set filetype=mkd
+
+" copy to clipboard
+" set clipboard=unnamed
+set clipboard=unnamedplus
+
+
+

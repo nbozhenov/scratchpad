@@ -1,0 +1,60 @@
+#!/usr/bin/env ruby
+
+require_relative 'ectl-lib/common.rb'
+require_relative 'ectl-lib/session.rb'
+require_relative 'ectl-lib/handler.rb'
+
+def usage
+  retval = "#{MYNAME} [COMMAND [CMDARGS...]] [--verbose=LEVEL]\n"
+  retval += "COMMAND:\n"
+  Ectl::Handlers.each { |h| retval += ("  " + h.usage) }
+  retval += "LEVEL:\n  fatal, error, warning, info (default), debug\n"
+  retval
+end
+
+def main
+
+  if ARGV.empty?
+    order = "ls"
+  else
+    if ARGV[0] == "help" or ARGV[0] == "--help" or ARGV[0] == "-h"
+      $log.level = Logger::INFO unless $log.level == Logger::DEBUG
+      echo usage
+      raise Ectl::PositiveResult
+    end
+    order = ARGV.shift
+  end
+
+  handlers = Ectl::Handlers.select { |h| order == h.name[0...order.size] }
+
+  if handlers.size > 1
+    bad_usage
+  elsif handlers.empty?
+    ARGV.unshift order
+    handler = Ectl::Attach.new
+  else
+    handler = handlers[0]
+  end
+
+  handler.run
+
+end
+
+begin
+  main
+rescue Ectl::PositiveResult
+  exit 0
+rescue Ectl::NegativeResult
+  exit 1
+rescue Ectl::InvalidProgram
+  exit 13
+rescue Ectl::GeneralFailure
+  exit 2
+rescue Exception
+  $log.fatal "Execution aborted due to internal error (uncaught exception)"
+  $log.info $!.inspect
+  $log.info { $!.backtrace.join("\n") }
+  exit 13
+else
+  exit 0
+end

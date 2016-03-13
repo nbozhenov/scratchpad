@@ -1,0 +1,38 @@
+#!/usr/bin/env ruby
+# -*- coding: utf-8 -*-
+
+require_relative "ectl-lib/common.rb"
+require 'tempfile'
+
+def usage
+  $log.info "#{MYNAME} FILE"
+end
+
+def main
+
+  bad_usage unless ARGV.size == 1
+
+  if ARGV[0] == "-"
+    file = Tempfile.new MYNAME
+    filename = file.path
+    $log.debug "Created temporary file '#{filename}'"
+    loop do
+      begin
+        str = $stdin.readpartial(65536)
+        file << str
+      rescue EOFError
+        break
+      end
+    end
+    file.flush
+  else
+    filename = ARGV[0]
+  end
+
+  #--eval говорит не открывать файл, а только сделать eval
+  #system "emacsclient", "-t", "-a", "", "-s", "cli", "--eval", "(prefer-coding-system 'koi8-r)", filename
+  system "emacsclient", "-t", "-a", "", "-s", "cli", filename
+
+end
+
+main

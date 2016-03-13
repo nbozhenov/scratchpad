@@ -1,0 +1,32 @@
+#!/bin/bash
+set -o errexit
+set -o nounset
+
+cint() {
+    find "$1" -name "CINT2000.*.raw"
+}
+
+cfp() {
+    find "$1" -name "CFP2000.*.raw"
+}
+
+assert_one() {
+    if [ "$1" != 1 ]; then
+        echo "Internal Error" >&2
+        exit 1
+    fi
+}
+
+cint1=`cint "$1"`
+cint2=`cint "$2"`
+cfp1=`cfp "$1"`
+cfp2=`cfp "$2"`
+
+assert_one `echo "$cint1" | wc -l`
+assert_one `echo "$cint2" | wc -l`
+assert_one `echo "$cfp1" | wc -l`
+assert_one `echo "$cfp2" | wc -l`
+
+my-spec-fmt "$cint1" "$cint2"
+echo
+my-spec-fmt "$cfp1" "$cfp2"

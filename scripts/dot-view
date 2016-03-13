@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+dot -Tps "$1" -o /tmp/dot.ps && okular /tmp/dot.ps

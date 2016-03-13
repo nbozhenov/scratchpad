@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+source `dirname $0`/print-path-common
+
+binpath() {
+  eachpath "$@"
+}
+
+run "$@"

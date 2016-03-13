@@ -1,0 +1,11 @@
+#!/usr/bin/env ruby
+
+sum = 0.0
+counter = 0
+ARGV.each do |arg|
+  sum += Math.log(arg.to_f)
+  counter += 1
+end
+
+puts "gmean(#{counter}) = #{Math.exp(sum/counter)}" if counter > 0
+

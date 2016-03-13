@@ -1,0 +1,201 @@
+#!/usr/bin/env ruby
+# -*- coding: utf-8 -*-
+
+def assert cond
+  return if cond
+  raise "Internal Error"
+end
+
+class Array
+  def best
+    self.sort!
+    self[0]
+  end
+  def sum
+    self.reduce(:+)
+  end
+  def avg
+    sum / size
+  end
+  def median
+    self.sort!
+    if size % 2
+      self[size/2]
+    else
+      [self[size/2 - 1], self[size/2]].avg
+    end
+  end
+  def prune
+    self.sort!
+    self.pop
+  end
+  def gmean
+    sum = 0.0
+    counter = 0
+    self.each do |x|
+      assert (x >= 0)
+      sum += Math.log(x)
+      counter += 1
+    end
+    Math.exp(sum/counter)
+  end
+end
+
+class Element
+  attr_reader :name, :peak, :base
+  def initialize name
+    @name = name
+    @peak = []
+    @base = []
+  end
+end
+
+class Results
+  def push name, kind, time
+    assert [ :base, :peak ].include?(kind)
+    @storage = Hash.new unless @storage
+    @storage[name] = Element.new name unless @storage[name]
+    o = @storage[name]
+    o.send(kind) << time
+  end
+
+  def each &block
+    @storage.each_value
+  end
+
+  def prune
+    self.each do |r|
+      r.base.prune
+      r.peak.prune
+    end
+  end
+end
+
+def diff x1, x2
+  100.0 * (x1 - x2) / x1
+end
+
+def pc2str pc
+  pc = pc.abs
+  retval = ""
+  if pc >= 0.95
+    retval = "."
+  end
+  if pc >= 1.95
+    retval = ".."
+  end
+  if pc >= 2.95
+    retval = "**"
+  end
+  if pc >= 4.95
+    retval = "***"
+  end
+  return retval
+end
+
+def format_score x
+  format "%5.1f", x
+end
+
+def format_pc x
+  format "%+4.1f%%", x
+end
+
+class Table
+  COLNUM = 9
+  def initialize
+    @width = ([0] * COLNUM)
+    @data = []
+  end
+  def dump_bar
+    dashes = (0...COLNUM).map do |i|
+      "-" * (@width[i] + 2)
+    end
+    print "|", dashes.join("+"), "|\n"
+  end
+  def dump
+    @data.each do |line|
+      if line == :bar
+        dump_bar
+        next
+      end
+      dump_line *line
+    end
+  end
+  def bar
+    @data << :bar
+  end
+  def line_1 *args
+    assert (args.size == COLNUM)
+    args.each_with_index do |arg, i|
+      @width[i] = [@width[i], arg.size].max
+    end
+    @data << args
+  end
+  def dump_line *args
+    assert (args.size == COLNUM)
+    line = (0...COLNUM).map do |i|
+      dash = ""
+      dash = "-" if [0,4,8].include?(i)
+      format "%#{dash}#{@width[i]}s", args[i]
+    end
+    print "| ", line.join(" | "), " |\n"
+  end
+  def heading
+    line_1 "", "base1", "base2", "Δbase", "", "peak1", "peak2", "Δpeak", ""
+  end
+  def line name, base1, base2, peak1, peak2
+    pc1 = diff(base1, base2)
+    pc2 = diff(peak1, peak2)
+    sum1 = pc2str(pc1)
+    sum2 = pc2str(pc2)
+
+    base1 = format_score base1
+    base2 = format_score base2
+    peak1 = format_score peak1
+    peak2 = format_score peak2
+
+    pc1 = format_pc pc1
+    pc2 = format_pc pc2
+
+    line_1 name, base1, base2, pc1, sum1, peak1, peak2, pc2, sum2
+  end
+end
+
+$res1 = Results.new
+$res2 = Results.new
+{ ARGV[0] => $res1 , ARGV[1] => $res2 }.each do |file, res|
+File.open file do |file|
+    file.each_line do |line|
+      m = line.match(/^spec\.cpu2000\.results\.(.*)\.(base|peak)\.\d+\.reported_time: (.*)$/)
+      res.push m[1].sub('_','.'), m[2].to_sym, m[3].to_f if m
+    end
+  end
+end
+
+$res1.prune
+$res2.prune
+
+i1 = $res1.each
+i2 = $res2.each
+ary1, ary2, ary3, ary4 = [], [], [], []
+$table = Table.new
+$table.bar
+$table.heading
+$table.bar
+loop do
+  v1 = i1.next
+  v2 = i2.next
+  assert (v1.name == v2.name)
+  x1, x2 = v1.base.avg, v2.base.avg
+  x3, x4 = v1.peak.avg, v2.peak.avg
+  ary1 << x1
+  ary2 << x2
+  ary3 << x3
+  ary4 << x4
+  $table.line v1.name, x1, x2, x3, x4
+end
+$table.bar
+$table.line "gmean", ary1.gmean, ary2.gmean, ary3.gmean, ary4.gmean
+$table.bar
+$table.dump

@@ -1,0 +1,51 @@
+#!/usr/bin/env ruby
+
+lineno = 0
+cycle = 0
+count = 0
+$width = 3
+
+MYNAME = $0.split('/')[-1]
+
+if ARGV.size != 0
+  if (ARGV.size == 2) and
+     (ARGV[0] == "-w") and
+     (match = ARGV[1].match(/^\d+$/))
+  then
+    $width = match[0].to_i
+    ARGV.shift 2
+  else
+    $stderr.puts "USAGE: #{MYNAME} [-w ISSUE_WIDTH] < <input-file>"
+  end
+end
+
+while line = gets do
+  lineno += 1
+
+  # parse line
+  match = line.match /^;;\s*(\d+)-.*$/
+  unless match
+    $stderr.puts "warning: line #{lineno} cannot be parsed"
+    next
+  end
+  new_cycle = match[1].to_i
+
+  # add nops
+  while cycle < new_cycle
+    while count < $width
+      printf ";;% 5d--> ### NOP ###\n", cycle
+      count += 1
+    end
+    cycle += 1
+    count = 0
+  end
+
+  # pass the line
+  puts line
+  count += 1
+  unless count <= $width
+    $stderr.puts "error: #{count}th instruction at #{cycle} cycle"
+    exit 1
+  end
+end
+

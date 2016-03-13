@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+set -o errexit
+set -o nounset
+
+# Example of usage:
+# $ debootstrap --arch armhf precise ~/sb/armhf
+# $ chroot ~/sb/armhf
+# $ make-fat-chroot /fat-chroot
+
+MYNAME=`basename $0`
+USAGE="USAGE: ${MYNAME} DIR"
+
+bad_usage() {
+  echo "$USAGE" >&2
+  exit 1
+}
+
+[ $# -eq 1 ] || bad_usage
+CHROOT=` echo "$1" | sed -e 's|/$||'`
+
+DIRS="bin etc include lib sbin usr/bin usr/include usr/lib usr/sbin"
+
+set -o xtrace
+mkdir -p "${CHROOT}" "${CHROOT}/usr"
+for dir in $DIRS; do
+  cp -RL "/${dir}" "${CHROOT}/${dir}" || true # ignore failures
+done
+
+

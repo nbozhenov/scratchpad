@@ -1,0 +1,133 @@
+#!/bin/bash
+set -o errexit
+set -o nounset
+
+SRCDIR=/data/src
+CONFFLAGS=()
+declare -A CHECKCONFOPTS
+for opt in  \
+  --enable-languages \
+  --target \
+  --prefix \
+  --program-prefix \
+  --program-suffix \
+  --with-sysroot \
+  --enable-checking \
+  --disable-bootstrap \
+  --disable-multilib;
+do
+  CHECKCONFOPTS[$opt]=valid
+done
+
+#
+# DSL
+#
+clone() {
+  for i in "$@"; do
+    clone_internal `repo_ver_path "$i"` # not implemented
+  done
+}
+
+deploy() {
+  for i in "$@"; do
+    getsrc `repo_ver_path "$i"`
+  done
+}
+
+pick() {
+  for i in "$@"; do
+    pick_internal `repo_ver_path "$i"`
+  done
+}
+
+configure() {
+  for opt in "$@"; do
+    local opt="${opt%%=*}"
+    [ -n "${CHECKCONFOPTS[$opt]:-}" ] || fail "Unsupported option '$opt'"
+  done
+  CONFFLAGS=("$@")
+}
+
+#
+# AUX
+#
+runcmd() {
+    echo "$@" >&2
+    "$@"
+}
+
+pick_internal() {
+  local repo="$1"
+  local ver="$2"
+  local path="${3:-}"
+  local localpath=`basename "$path"`
+  local localpath="${localpath:-$repo}"
+  mkdir "$localpath"
+  pushd "$localpath"
+    getsrc "$repo" "$ver" "$path"
+  popd
+}
+
+repo_ver_path() {
+  for arg in "$@"; do
+    local repo="${arg%%:*}"
+    local rest="${arg#*:}"
+    local ver="${rest%%/*}"
+    local path="${rest#*/}"
+    if ! echo "$rest" | grep -q '/'; then
+      local path=""
+    fi
+    echo "$repo" "$ver" "$path"
+  done
+}
+
+# getsrc REPOSITORY VERSION PATH
+getsrc() {
+  local repo="$1"
+  local ver="$2"
+  local path="${3:-}"
+  local helper="$SRCDIR/$repo/checkout"
+  local strip=0
+  for i in `echo "$path" | tr '/' ' '`; do
+    strip=$((strip + 1))
+  done
+  if [ $strip -gt 0 ]; then
+    strip="--strip-components=$strip"
+  else
+    strip=""
+  fi
+  if [ -x "$helper" ]; then
+    runcmd "$helper" "$ver" "$path"
+  else
+    echo "git --git-dir=$SRCDIR/$repo archive $ver -- $path | tar x $strip"
+    git --git-dir="$SRCDIR/$repo" archive "$ver" -- "$path" | tar x $strip
+  fi
+}
+
+fail() {
+  echo "$@" >&2
+  exit 1
+}
+
+pushd() {
+  echo "cd $1" >&2
+  builtin pushd "$1" >/dev/null
+}
+
+popd() {
+  builtin popd >/dev/null
+  echo "cd `pwd`" >&2
+}
+
+#
+# DOIT
+#
+mkdir src build install
+SPECFILE=`abspath "$1"`
+pushd src
+  source "$SPECFILE"
+popd
+
+pushd build
+  runcmd ../src/configure --prefix=`abspath ../install` "${CONFFLAGS[@]}"
+popd

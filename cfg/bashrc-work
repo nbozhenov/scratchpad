@@ -1,0 +1,403 @@
+#
+# umask
+#
+umask 022
+
+#
+# who am i?
+#
+if [ ${#HOSTTYPE} == 0 ]; then
+    export HOSTTYPE=`uname -p`
+fi
+
+if [ ${#HOSTNAME} == 0 ]; then
+    export HOSTNAME=`hostname`
+fi
+
+if [ ${#OS_NAME} == 0 ]; then
+    export OS_NAME=`uname -s`
+fi
+
+export ARCH=$(uname -m)
+
+if [ "$HOSTNAME" = "shadow" ]; then
+    export DISPLAY=":0"
+else
+    export DISPLAY="shadow:0"
+fi
+
+#
+# append and prepend
+#
+append () {
+    if [ $# -lt 2 ]; then
+        echo "append: invalid usage" >&2
+        return 1
+    fi
+
+    local appendee=$1
+    local append=
+    local old_value=$(eval "echo -n \$$appendee")
+    local cmd=
+    shift
+
+    for append in "$@"; do
+        if [ -z "$old_value" ]; then
+            cmd="export $appendee=$append"
+            old_value=old_value
+        else
+            cmd="export $appendee=\$$appendee:$append"
+        fi
+        eval "$cmd"
+    done
+}
+
+# аргументы препендятся в обратном порядке (т.е. последний аргумент станет первым)
+prepend () {
+    if [ $# -lt 2 ]; then
+        echo "prepend: invalid usage" >&2
+        return 1
+    fi
+
+    local prependee=$1
+    local prepend=
+    local old_value=$(eval "echo -n \$$prependee")
+    local cmd=
+    shift
+
+    for prepend in "$@"; do
+        if [ -z "$old_value" ]; then
+            cmd="export $prependee=$prepend"
+            old_value=old_value
+        else
+            cmd="export $prependee=$prepend:\$$prependee"
+        fi
+        eval "$cmd"
+    done
+}
+
+#
+# sieve dirlist discarding nonexistent directories
+#
+sieve_dirlist () {
+    for dir in "$@"; do
+        if [ -d "$dir" ]; then
+            echo "$dir"
+        fi
+    done
+}
+
+
+#
+# PATH
+#
+PATH=
+
+append PATH $(sieve_dirlist     /usr/X11R6/bin          \
+                                /usr/local/bin          \
+                                /usr/local/ssl/bin      \
+                                /opt/bin                \
+                                /etc                    \
+                                /bin                    \
+                                /sbin                   \
+                                /usr/bin                \
+                                /usr/bin/nsr            \
+                                /usr/sbin               \
+                                /usr/ccs/bin            \
+                                /usr/proc/bin           \
+                                /usr/ucb                \
+                                /usr/sfw/bin            \
+                                /usr/dt/bin)
+
+if [ $ARCH = "i686" ]; then
+    # ecomp
+    append PATH /home/cf/ecomp.rel-i-1
+    # binutils
+    append PATH /home/cf/e2k/mcst.rel-i-1.binutils/e2k-generic-linux.cross/bin  \
+                /home/cf/e2k/mcst.rel-i-1.binutils/e90-v8-linux.cross/bin       \
+                /home/cf/e2k/mcst.rel-i-1.binutils/e90-ultra3-linux.cross/bin
+    # e2kt
+    append PATH /home/cf/e2k/test/e2kt
+    # lsim
+    append PATH /home/cf/e2k/e2k_0.5.3/linux/bin
+    # v9sim
+    append PATH /home/cf/e90/sparc_v9/linux/bin
+fi
+
+# BINPATH
+if [ $ARCH = i686 ]; then
+    for dir in $(cat ~/{bin,cross}/BINPATH); do
+        prepend PATH $dir
+    done
+elif [ $ARCH = sparc ] || [ $ARCH = sparc64 ]; then
+    for dir in $(cat ~/sparc-bin/BINPATH); do
+        prepend PATH $dir
+    done
+fi
+
+#
+# LD_LIBRARY_PATH
+#
+LD_LIBRARY_PATH=.
+append LD_LIBRARY_PATH $(sieve_dirlist  /usr/local/lib      \
+                                        /usr/local/ssl/lib  \
+                                        /usr/lib            \
+                                        /usr/sfw/lib        \
+                                        /usr/dt/lib         \
+                                        /usr/ucblib)
+
+#
+export LESS=-Mb1500x8
+export LESSEDIT="vim %f"
+export LESSCHARSET=koi8-r
+
+export CSV_RSH=/bin/ssh
+export CVSEDITOR=vim
+
+export VISUAL=vim
+export EDITOR=vim
+unset MAILCHECK
+
+unset COMPILER
+unset VIM
+
+# На ru_RU ВСЕ работает через жопу. Если что-то рабтает лучше с ru_RU,
+# то менять окружение индивидуально
+# export LC_ALL=ru_RU.KOI8-R
+export LC_ALL=C
+
+#
+# INFOPATH and MANPATH
+#
+if [ "$HOSTNAME" = shadow ]; then
+    for dir in $(cat ~/bin/INFOPATH); do
+        prepend INFOPATH $dir
+    done
+    for dir in $(cat ~/bin/MANPATH); do
+        prepend MANPATH $dir
+    done
+fi
+
+#
+# alias
+#
+if [ $ARCH = i686 ]; then
+    alias tags="ctags -R --c-kinds=+p --fields=+iaS --extra=+q"
+    alias ranger="~/bin/ranger-1.5.5/ranger.py"
+    alias clang="LD_LIBRARY_PATH=/home/bozhenov_n/bin/gcc-4.8.0/lib:$LD_LIBRARY_PATH clang"
+    alias ipc_rm_sem="ipcs -s | tail -n +4 | awk '{ print \$2; }' | xargs -n 1 ipcrm -s"
+
+    alias e2k-readelf=e2k-linux-readelf
+    alias e2k-nm=e2k-linux-nm
+    alias e2k-objdump=e2k-linux-objdump
+    alias e90v8-readelf=sparc-linux-readelf
+    alias e90v8-nm=sparc-linux-nm
+    alias e90v8-objdump=sparc-linux-objdump
+    alias e90-readelf=sparc64-linux-readelf
+    alias e90-nm=sparc64-linux-nm
+    alias e90-objdump=sparc64-linux-objdump
+fi
+
+if [ "$OS_NAME" = Linux ]; then
+    #alias man="LANG=en_US man"
+    alias man="LANG=C LC_ALL=C man"
+    alias ls="ls --color=auto "
+    alias grep="grep --color=auto "
+fi
+
+alias tags="etags --no-members --ignore-indentation --declarations -lc++"
+alias vim="no-more-vim"
+
+#
+# proxy
+#
+export http_proxy=192.168.20.99:8080
+export ftp_proxy=192.168.20.99:8080
+
+#
+# cd
+#
+cd () {
+    CDPATH= builtin cd "$@" &>/dev/null # redirect both
+    [ $? -eq 0 ] || \
+        CDPATH=~/cdpath builtin cd -P "$@" >/dev/null # don't redirect stderr
+}
+
+export RUBYLIB="$HOME/Dropbox/ruby"
+export PYTHONPATH="$HOME/py/lib/python2.6/site-packages"
+
+#
+# interactive
+#
+
+#
+# Инфа по xterm control sequences
+# http://invisible-island.net/xterm/ctlseqs/ctlseqs.html
+# 
+# Таблица цветов легко гуглится по запросу "xterm 256 colors"
+#
+#
+# Пара \[ и \] говорит башу, что то, что между ними, не надо учитывать при подсчете длины приглашения
+#
+
+# COLOR = "\e[PARAMSm"
+# PARAMS= PARAM | PARAMS;PARAM
+# PARAM = 0 (normal)
+#         1 (bold)
+#         4 (underline)
+#        30 (black)
+#        31 (red)
+#        32 (green)
+#        33 (yellow)
+#        34 (blue)
+#        35 (purple)
+#        36 (cyan)
+#        37 (white)
+#
+#        4x (background color)
+#        9x (high intensity)
+#
+# EXAMPLES: \e[0m       # no color (reset colors)
+#           \e[4;32;46  # green, underline, on cyan
+
+function y-pretty-time {
+    local seconds=`echo "scale=0; $1/1" | bc`
+    local mseconds=`echo "scale=0; ($1 - $seconds) * 100 / 1" | bc`
+    local minutes=$(($seconds/60))
+    local hours=$(($minutes/60))
+
+    seconds=$(($seconds - (60 * $minutes)))
+    minutes=$(($minutes - (60 * $hours)))
+
+    if [ $hours -ne 0 ]; then
+        hours=$(printf "%02d:" $hours)
+    else
+        hours=
+    fi
+
+    minutes=$(printf "%02d:" $minutes)
+    seconds=$(printf "%02d." $seconds)
+    mseconds=$(printf "%02d" $mseconds)
+
+    echo "${hours}${minutes}${seconds}${mseconds}"
+}
+
+function y-gen-ps1 {
+
+    local rcd="$1"    # код возврата последней команды
+
+    local no_color="\[\e[0m\]"
+    local grey="\[\e[38;5;240m\]"
+    local green="\[\e[38;5;40m\]"
+    #local bgreen="\[\e[1;38;5;28m\]"
+    local bgreen="\[\e[1;32m\]"
+    local red="\[\e[38;5;196m\]"
+    #local bred="\[\e[1;38;5;196m\]"
+    local bred="\[\e[1;31m\]"
+    #local bbrown="\[\e[1;38;5;94m\]"
+    local bbrown="\[\e[1;33m\]"
+    local purple="\[\e[38;5;165m\]"
+    #local bpurple="\[\e[1;38;5;57m\]" # тоже хороший вариант для prompt-а
+    local bpurple="\[\e[1;35m\]"
+
+    if [ -n "$INSIDE_EMACS" ]; then
+        green="\[\e[0;32m\]"
+        bgreen=""
+    fi
+
+    local sigtstp=$((128 + $(kill -l SIGTSTP)))
+
+    local prompt_color=
+    local user=`whoami`
+    local host=`hostname`
+    local pwdir=$(pwd | sed -e "s|^${HOME}|~|")
+
+    local last_color= # цвет инфы о последней команде
+    local last_time=  # строка с инфой о времени последней команды
+    local rc=         # строка с инфой о коде возврата последней команды
+    local last_full=  # строка с совместной инфой о последней команде
+
+    local prompt="\$" # может быть $ или #
+
+    # [ -n "$SSH_CONNECTION" ] || ssh_flag=false
+
+    # deal with user
+    if [ "$host" = "shadow" ] && [ "$user" = "bozhenov_n" ]; then
+        prompt_color="$bgreen"
+    elif [ "$user" = "root" ]; then
+        prompt="#"
+        prompt_color="$bred"
+    else
+        prompt_color="$bbrown"
+    fi
+
+    # deal with rc
+    if [ "$rcd" -eq 0 ]; then
+        last_color="$green"
+        rc="=> 0 " # необязательная строчка
+    elif [ "$rcd" -eq "$sigtstp" ]; then
+        last_color="$grey"
+        rc="=> SIGTSTP "
+    elif [ "$rcd" -gt 128 ]; then
+        last_color="$red"
+        local signame=`kill -l $(($rcd - 128)) 2>/dev/null`
+        if [ $? -eq 0 ] && [ -n "$signame" ]; then
+            rc="=> SIG${signame} "
+        else
+            rc="=> ${rcd} "
+        fi
+    else
+        last_color="$red"
+        rc="=> ${rcd} "
+    fi
+
+    # deal with time
+    last_time="$(y-pretty-time "$y_timer_external") "
+    unset y_timer_external
+        
+    # combine time and rc
+    if [ -n "$last_time" ] || [ -n "$rc" ]; then
+        last_full="[ ${last_time}${rc}]"
+    fi
+
+    # collect jobs
+    local jobs=$(jobs -l)
+
+    local first_part="${last_color}${last_full}${no_color}\n"
+    local second_part=${jobs:+"${bpurple}[ $(jobs | wc -l) ]${no_color} "}
+
+    # check version control systems
+    if [ -a CVS ]; then
+       second_part="${second_part}${bred}[ cvs ]${no_color} "
+    fi
+    if [ -a .svn ]; then
+       second_part="${second_part}${bred}[ svn ]${no_color} "
+    fi
+
+    local third_part="${prompt_color}${user}@${host}:${pwdir}${no_color}\n"
+    local fourth_part="${prompt_color}${prompt} ${no_color}"
+    PS1="${first_part}${third_part}${second_part}${fourth_part}"
+}
+
+function y-timer-start {
+    y_timer_internal=${y_timer_internal:-"$(date +%s.%N)"}
+}
+
+function y-timer-stop {
+    local rcd=$?
+    local now=`date +%s.%N`
+    y_timer_external=`echo "scale=2; $now - $y_timer_internal" | bc`
+    unset y_timer_internal
+    y-gen-ps1 $rcd
+    return $rcd
+}
+
+trap y-timer-start DEBUG
+PROMPT_COMMAND=y-timer-stop
+
+export TERM=xterm-256color
+set -o vi
+
+if [ -z "$TMUX" ] && [ "$HOSTNAME" = "shadow" ] && [ -z "$INSIDE_EMACS" ]; then
+    tmux
+fi

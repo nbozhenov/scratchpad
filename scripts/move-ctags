@@ -1,0 +1,124 @@
+#!/usr/bin/env ruby
+
+require 'getoptlong'
+require 'logger'
+require 'pathname'
+
+$logger = Logger.new($stderr)
+$logger.level = Logger::WARN
+$logger.formatter = proc { |severity, datetime, progname, msg|
+  "#{msg}\n"
+}
+
+MYDIR = File.dirname(File.absolute_path $0)
+MYNAME = $0.split('/')[-1]
+
+def enforce cond, msg = "Assertion failed"
+  unless cond
+    raise msg
+  end
+end
+
+def bad_usage
+  $logger.fatal usage
+  exit 1
+end
+
+def usage
+    """
+    USAGE: #{MYNAME} [OPTIONS] -f FROMDIR -t TODIR TAGFILE -o NEWFILE
+    OPTIONS:
+      -r              make all paths relative
+      -q              quiet
+      -v              verbose
+      --debug         very verbose
+      -h              help
+    """
+end
+
+def main
+  opts = GetoptLong.new(
+      [ '-f', GetoptLong::REQUIRED_ARGUMENT ],
+      [ '-t', GetoptLong::REQUIRED_ARGUMENT ],
+      [ '-o', GetoptLong::REQUIRED_ARGUMENT ],
+      [ '-r', GetoptLong::NO_ARGUMENT ],
+      [ '-q', GetoptLong::NO_ARGUMENT ],
+      [ '-v', GetoptLong::NO_ARGUMENT ],
+      [ '--debug', GetoptLong::NO_ARGUMENT ],
+      [ '-h', GetoptLong::NO_ARGUMENT ],
+  )
+
+  fromdir = todir = nil
+  force_relative = false
+  outfilename = nil
+
+  opts.each do |opt, arg|
+    case opt
+    when '-f'
+      fromdir = arg
+    when '-t'
+      todir = arg
+    when '-o'
+      outfilename = arg
+    when '-r'
+      force_relative = true
+    when '-q'
+      $logger.level = Logger::ERROR
+    when '-v'
+      $logger.level = Logger::INFO
+    when '--debug'
+      $logger.level = Logger::DEBUG
+    when '-h'
+      $stdout.puts usage
+      exit 0
+    else
+      $logger.error usage
+      exit 1
+    end
+  end
+
+  bad_usage unless (fromdir and todir)
+  bad_usage unless ARGV.size == 1
+  bad_usage unless outfilename
+  tagfilename = ARGV[0]
+
+  fromdir = File.absolute_path fromdir
+  todir = File.absolute_path todir
+
+  File.open tagfilename do |tagfile|
+    File.open outfilename, "w" do |outfile|
+      while line = tagfile.gets
+        line.chomp!
+        catch :eop do
+          if line[0] == '!'
+            $logger.warn "Unsupported line format: '#{line}'"
+            throw :eop
+          end
+          tokens = line.split
+          if tokens.size != 3
+            $logger.error "Cannot parse line: '#{line}'"
+            throw :eop
+          end
+          if tokens[1][0] == '/'
+            throw :eop unless force_relative
+          else
+            tokens[1] = fromdir + "/" + tokens[1]
+          end
+          tokens[1] = (Pathname.new tokens[1]).relative_path_from(Pathname.new todir).to_s
+          line = tokens.join(" ")
+        end
+        outfile.puts line
+      end
+    end
+  end
+end
+
+begin
+  main
+rescue
+  $logger.fatal $!.message
+  $logger.info  $!.backtrace.join("\n")
+  exit 1
+end
+
+exit 0

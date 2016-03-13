@@ -1,0 +1,231 @@
+#!/bin/bash
+set -o errexit
+set -o nounset
+
+exec 3>&2
+
+SRCDIR=/data/src
+
+test "$#" -eq 1
+cd `dirname "$1"`
+SCRIPT=`basename "$1"`
+SCRIPTDIR=`pwd`
+
+LASTPUSH=""
+
+mypushd() {
+  local dest=`abspath "$1"`
+  if [ "$LASTPUSH" != "$dest" ]; then
+    echo "+ cd" "$dest" >&3
+    LASTPUSH="$dest"
+  fi
+  pushd "$dest" &> /dev/null
+}
+
+mypopd() {
+  popd &> /dev/null
+}
+
+# TODO: mkdir logdir when getting sources (to enforce its creation and existence)
+logdir() {
+  local path="$SCRIPTDIR/$1".log
+  mkdir -p "$path"
+  printf "%q" "$path"
+}
+
+runcmd() {
+  printf "+" | tee /dev/fd/3
+  for word in "$@"; do
+    printf " %q" "$word" | tee /dev/fd/3
+  done
+  printf "\n" | tee /dev/fd/3
+  "$@"
+}
+
+defaults() {
+  # INSTALL: PWD/install
+  if ! [ -v INSTALL ]; then
+    INSTALL=`abspath install`
+  fi
+
+  # LANGS: c
+  LANGS="${LANGS:-c}"
+
+  # BOOTSTRAP: doesn't matter actually
+  BOOTSTRAP="${BOOTSTRAP:-false}"
+  case "$BOOTSTRAP" in
+    true)
+      BOOTSTRAPFLAG="--enable-bootstrap"
+      ;;
+    false)
+      BOOTSTRAPFLAG="--disable-bootstrap"
+      ;;
+    *)
+      echo "Cannot parse BOOTSTRAP value" >&2
+      exit 1
+      ;;
+  esac
+
+  # TARGET: head of sysroot or empty (native)
+  # SYSROOT: no default value
+  if ! [ -v TARGET ]; then
+    if [ -v SYSROOT ]; then
+      TARGET=`basename "$SYSROOT"`
+      TARGET="${TARGET/-*/-linux-gnu}"
+    fi
+  fi
+
+  # PREFIX: head of PWD
+  if ! [ -v PREFIX ]; then
+    PREFIX=`basename "$PWD"`
+    PREFIX="${PREFIX/-*/-}"
+  fi
+
+  # SUFFIX: tail of PWD
+  if ! [ -v SUFFIX ]; then
+    SUFFIX="${PWD/*-/-}"
+  fi
+
+  MORECONFOPTS="${MORECONFOPTS:-}"
+}
+
+install() {
+  test "$#" -eq 2
+
+  local tool="$1"
+  local version="$2"
+  local workdir=`pwd`/"$tool".build
+  local stamp=`logdir "$tool"`/install.stamp
+
+  if [ -f "$stamp" ]; then
+    return 0
+  fi
+
+  build "$@"
+
+  mypushd "$workdir"
+    runcmd make install &> `logdir "$tool"`/install.log
+    runcmd touch "$stamp" &> /dev/null
+  mypopd
+}
+
+build() {
+  test "$#" -eq 2
+
+  local tool="$1"
+  local version="$2"
+  local workdir=`pwd`/"$tool".build
+  local stamp=`logdir "$tool"`/build.stamp
+  
+  if [ -f "$stamp" ]; then
+    return 0
+  fi
+
+  configure "$@"
+
+  mypushd "$workdir"
+    runcmd make -j8 -k &> `logdir "$tool"`/build.log
+    runcmd touch "$stamp" &> /dev/null
+  mypopd
+}
+
+configure() {
+  test "$#" -eq 2
+
+  local tool="$1"
+  local version="$2"
+  local workdir=`pwd`/"$tool".build
+  local stamp=`logdir "$tool"`/configure.stamp
+
+  if [ -f "$stamp" ]; then
+    return 0
+  fi
+
+  checkout "$@"
+
+  if ! [ -e "$workdir" ]; then
+    mkdir "$workdir"
+  fi
+
+  defaults
+  mypushd "$workdir"
+    runcmd ../"$tool".src/configure             \
+      --prefix="$INSTALL"                       \
+      --enable-languages="$LANGS"               \
+      `test -v TARGET && printf "%q" --target="$TARGET"`        \
+      `test -v PREFIX && printf "%q" --program-prefix="$PREFIX"`\
+      `test -v SUFFIX && printf "%q" --program-suffix="$SUFFIX"`\
+      `test -v SYSROOT && printf "%q" --with-sysroot="$SYSROOT"`\
+      --enable-checking                         \
+      $BOOTSTRAPFLAG                            \
+      --disable-multilib                        \
+      $MORECONFOPTS &> `logdir "$tool"`/configure.log
+    runcmd touch "$stamp" &> /dev/null
+  mypopd
+}
+
+checkout() {
+  test "$#" -eq 2
+
+  local tool="$1"
+  local version="$2"
+  local workdir=`pwd`/"$tool".src
+  local stamp=`logdir "$tool"`/checkout.stamp
+  local logfile=`logdir "$tool"`/checkout.ver
+
+  if [ -f "$stamp" ]; then
+    return 0
+  fi
+
+  if ! [ -e "$workdir" ]; then
+    mkdir "$workdir"
+  fi
+
+  if [ -x "$SRCDIR"/"$tool"/clone ]; then
+    local srctool="$SRCDIR"/"$tool"/clone
+  else
+    local srctool="$SRCDIR"/"$tool"/checkout
+  fi
+
+  mypushd "$workdir"
+    runcmd "$srctool" "$version" &> /dev/null
+    if [ `basename "$srctool"` = clone ]; then
+      version=`git rev-parse HEAD`
+    fi
+    echo "+ echo $version > $logfile" >&3
+    echo "$version" > "$logfile"
+    runcmd touch "$stamp" &> /dev/null
+  mypopd
+}
+
+mktags() {
+  local gccdir=gcc.src
+  if [ ! -d "$gccdir" ]; then
+    gccdir=`ls -1d tizen-gcc*.src | head -1`
+  fi
+  if [ ! -d "$gccdir" ]; then
+    echo "warning: mktags: cannot find GCC directory" >&2
+    return 0
+  fi
+  mypushd "$gccdir"/gcc
+    runcmd update-gcc-tags &> /dev/null
+  mypopd
+}
+
+protect() {
+  if [ -v PROTECT ]; then 
+    if [ "$PROTECT" = false ]; then
+      return 0
+    elif [ "$PROTECT" != true ]; then
+      echo "Cannot parse PROTECT value" >&2
+      exit
+    fi
+  fi
+  mypushd `pwd`
+    runcmd chmod a-w -R . &> /dev/null
+  mypopd
+}
+
+source "$SCRIPT"
+mktags
+protect

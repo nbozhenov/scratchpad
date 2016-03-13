@@ -1,0 +1,204 @@
+#!/usr/bin/env ruby
+
+# TODO: add option to try to unmount all mounted partition in order
+# to clean everything after failure
+
+# TODO: lock 'lock files' to protect them from deleting and delete them
+# during the cleaning action
+
+# TODO: wait and repeat if unmount failed for the first time
+
+require 'getoptlong'
+require 'logger'
+
+$logger = Logger.new($stderr)
+$logger.level = Logger::INFO
+$logger.formatter = proc { |severity, datetime, progname, msg|
+  "#{msg}\n"
+}
+
+MYDIR = File.dirname(File.absolute_path $0)
+MYNAME = $0.split('/')[-1]
+
+def enforce cond, msg = "Assertion failed"
+  unless cond
+    $logger.fatal msg
+    exit 1
+  end
+end
+
+def bad_usage
+  $logger.fatal usage
+  exit 1
+end
+
+def usage
+    "USAGE: #{MYNAME} NEWROOT"
+end
+
+opts = GetoptLong.new(
+    [ '-n', GetoptLong::NO_ARGUMENT ],
+    [ '--help', '-h', GetoptLong::NO_ARGUMENT ]
+)
+
+opts.each do |opt, arg|
+    case opt
+    when '--help'
+      $stdout.puts usage
+      exit 0
+    else
+      puts usage
+      exit 1
+    end
+end
+
+unless ARGV.size == 1 and Dir.exists? ARGV[0]
+    bad_usage
+end
+
+$chroot = File.absolute_path ARGV[0]
+$user = File.basename $chroot
+
+def runcmd *args
+  $logger.info "runcmd #{args}"
+  system *args
+  enforce ($?.exitstatus == 0), "Non-zero return code (#{$?.exitstatus})\nFailed command was '#{args}'"
+end
+
+class BindMount
+  def initialize path
+    @path = path
+    @chpath = "#{$chroot}#{@path}"
+  end
+  def mount
+    runcmd "mkdir", @chpath unless Dir.exists? @chpath
+    runcmd "mount", "-o", "bind", @path, @chpath
+  end
+  def umount
+    runcmd "umount", "-fl", @chpath
+  end
+end
+
+class NoneMount
+  def initialize type, path
+    @chpath = "#{$chroot}#{path}"
+    @type = type
+  end
+  def mount
+    runcmd "mkdir", @chpath unless Dir.exists? @chpath
+    runcmd "mount", "-t", @type, "none", @chpath
+  end
+  def umount
+    runcmd "umount", "-fl", @chpath
+  end
+end
+
+class RunMount
+  def initialize
+    @chpath = "#{$chroot}/run"
+  end
+  def mount
+    runcmd "mkdir", @chpath unless Dir.exists? @chpath
+    runcmd "mount", "-t", "tmpfs", "none", @chpath
+    runcmd "mkdir", "#{@chpath}/shm", "--mode=777"
+    runcmd "mkdir", "#{@chpath}/lock", "--mode=777"
+    runcmd "mkdir", "#{@chpath}/user", "--mode=777"
+  end
+  def umount
+    runcmd "umount", "-fl", @chpath
+  end
+end
+
+# TODO: avoid race condition by holding lock on some file inside LOCKDIR
+class Mounter
+    def initialize *mounts
+      @mounts = mounts
+      @mounted = []
+    end
+    def envelop *args, &block
+      begin
+        if Dir.glob("#{LOCKDIR}/#{LOCKPREFIX}*").size == 1
+          do_mount
+        end
+        yield *args # non-zero exit status triggers emergency umount ???
+        if Dir.glob("#{LOCKDIR}/#{LOCKPREFIX}*").size == 1
+          do_umount
+        end
+      rescue
+        do_emergency_umount
+        raise $!
+      end
+    end
+    private
+    def do_mount
+      @mounts.each do |m|
+        m.mount
+        @mounted << m
+      end
+    end
+    private
+    def do_umount
+      @mounts.reverse_each { |m| m.umount }
+      @mounted = [] # What will happen if the previous loop fails?
+    end
+    private
+    def do_emergency_umount
+      until @mounted.empty?
+        @mounted.pop.umount
+      end
+    end
+end
+
+LOCKDIR = "#{$chroot}/tmp/chroot-locks"
+LOCKPREFIX = "chroot-lock"
+
+mktemp_cmd = "mktemp -u --tmpdir='#{LOCKDIR}' '#{LOCKPREFIX}-XXXXXX'"
+$logger.info "runcmd #{mktemp_cmd.split}"
+lockname = `#{mktemp_cmd}`.chomp
+enforce ($?.exitstatus == 0)
+
+$user_mounts = []
+
+if File.exists?("#{$chroot}/chroot.spec")
+  File.open "#{$chroot}/chroot.spec" do |file|
+    file.each_line do |line|
+      next if line =~ /^[[:space:]]*(#.*)?$/
+      m = /^bind[[:space:]]+(.+)$/.match(line)
+      enforce(m)
+      $user_mounts << BindMount.new(m[1])
+    end
+  end
+end
+
+# non-bind proc mount often failed to umount
+$mounter = Mounter.new \
+    BindMount.new("/proc"),
+    BindMount.new("/dev"),
+    BindMount.new("/dev/pts"),
+    BindMount.new("/sys"),
+    RunMount.new,
+    *$user_mounts
+
+class MyTempfile
+  def self.open name, &block
+    unless Dir.exists? LOCKDIR
+      runcmd "mkdir", "-p", "#{$chroot}/tmp"
+      runcmd "mount", "-t", "tmpfs", "none", "#{$chroot}/tmp"
+      runcmd "mkdir", LOCKDIR
+    end
+    runcmd "touch", name
+    begin
+      yield
+    ensure
+      runcmd "rm", name
+      runcmd "umount", "-fl", "#{$chroot}/tmp" if Dir.glob("#{LOCKDIR}/#{LOCKPREFIX}*").size == 0
+    end
+  end
+end
+
+MyTempfile.open lockname do
+  $mounter.envelop do
+    runcmd "chroot", $chroot, "/bin/bash", "-c", "cd /home/#{$user} && su #{$user} || true"
+    #system "chroot", $chroot, "/bin/bash", "-c", "cd /home/#{$user} && su #{$user}"
+  end
+end

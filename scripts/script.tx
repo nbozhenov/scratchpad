@@ -1,0 +1,176 @@
+#!/usr/bin/env ruby
+# -*- coding: utf-8 -*-
+
+#require_relative "../ruby/y-harness.rb"
+require 'getoptlong'
+require_relative 'tdtags'
+
+MYDIR = File.dirname(File.absolute_path $0)
+MYNAME = $0.split('/')[-1]
+
+def bad_usage
+  #$logger.fatal usage
+  exit 1
+end
+
+def usage
+    """
+    USAGE: #{MYNAME} OPTIONS...
+        --cin CTAGS_FILE
+        --ein ETAGS_FILE
+        --output FILENAME
+        --quiet (-q)
+        --verbose (-v)
+        --help (-h)
+    """
+end
+
+def update_tagtext_strictly
+  #$logger.warn "support for update-tagtext-strictly is not complete"
+  #$logger.debug "deleting tag definition texts"
+  $tags.each_tag do |t|
+    if t.text and not t.name
+      t.name = t.text
+      t.text = nil
+    end
+  end
+  $tags.each_tag { |t| t.text = nil if t.name } # TODO: what should we do if t.name == nil?
+  update_tagtext_lazily
+end
+
+def update_tagtext_lazily
+  #$logger.debug "updating tag definition texts"
+  $tags.fix_missing_text
+end
+
+def delete_if_tagname str
+  #$logger.debug "deleting tags with names like #{str}"
+  regex = eval str
+  deleted = 0
+  $tags.delete_if do |tag|
+    retval = false
+    if tag.name and tag.name =~ regex
+      retval = true
+      deleted += 1
+    end
+    retval
+  end
+  #$logger.debug "#{deleted} tags deleted"
+end
+
+def delete_if_tagtext str
+  #$logger.debug "deleting tags with text line #{str}"
+  regex = eval str
+  deleted = 0
+  $tags.delete_if do |tag|
+    retval = false
+    if tag.text and tag.text =~ regex
+      retval = true
+      deleted += 1
+    end
+    retval
+  end
+  #$logger.debug "#{deleted} tags deleted"
+end
+
+def main
+  opts = GetoptLong.new(
+      [ '--update-tagtext-strictly', GetoptLong::NO_ARGUMENT ],
+      [ '--update-tagtext-lazily', GetoptLong::NO_ARGUMENT ],
+      [ '--delete-if-tagname', GetoptLong::REQUIRED_ARGUMENT ],
+      [ '--delete-if-tagtext', GetoptLong::REQUIRED_ARGUMENT ],
+      [ '--cin', '-c', GetoptLong::REQUIRED_ARGUMENT ],
+      [ '--ein', '-e', GetoptLong::REQUIRED_ARGUMENT ],
+      [ '--output', '-o', GetoptLong::REQUIRED_ARGUMENT ],
+      [ '--quiet', '-q', GetoptLong::NO_ARGUMENT ],
+      [ '--verbose', '-v', GetoptLong::NO_ARGUMENT ],
+      [ '--debug', GetoptLong::NO_ARGUMENT ],
+      [ '--overwrite', GetoptLong::NO_ARGUMENT ],
+      [ '--help', '-h', GetoptLong::NO_ARGUMENT ]
+  )
+
+  output = nil
+  ctags = []
+  etags = []
+  actions = []
+  overwrite = false
+
+  #termlog = $logger.add $stderr, :level => Logger::DEBUG, :formatter => :trivial
+
+  opts.each do |opt, arg|
+    case opt
+    when '--update-tagtext-strictly'
+      actions << lambda() { update_tagtext_strictly }
+    when '--update-tagtext-lazily'
+      actions << lambda() { update_tagtext_lazily }
+    when '--delete-if-tagname'
+      actions << lambda() { delete_if_tagname arg }
+    when '--delete-if-tagtext'
+      actions << lambda() { delete_if_tagtext arg }
+    when '--cin'
+      ctags << arg
+    when '--ein'
+      etags << arg
+    when '--output'
+      output = arg
+    when '--quiet'
+      termlog.level = Logger::ERROR
+    when '--verbose'
+      termlog.level = Logger::INFO
+    when '--debug'
+      termlog.level = Logger::DEBUG
+    when '--overwrite'
+      overwrite = true
+    when '--help'
+      $stdout.puts usage
+      exit 0
+    else
+      bad_usage
+    end
+  end
+
+  bad_usage if (ctags.empty? and etags.empty?)
+  bad_usage unless output
+
+  $tags = Tags.new
+  ctags.each do |f|
+    #$logger.info "parsing #{f}"
+    File.open f do |io|
+      $tags.cappend io, overwrite
+    end
+  end
+  etags.each do |f|
+    #$logger.info "parsing #{f}"
+    File.open f do |io|
+      $tags.eappend io, overwrite
+    end
+  end
+
+  #$logger.info "modifying"
+  actions.each { |a| a.call }
+
+  File.open output, "w" do |io|
+    #$logger.info "dumping into #{output}"
+    $tags.edump io
+  end
+end
+
+begin
+  main
+rescue SystemExit # raised by exit
+  exit $!.status
+rescue StandardError
+  #$logger.fatal $!.message
+  $stderr.puts $!.message
+  #$logger.debug $!.backtrace.join("\n")
+  $stderr.puts $!.backtrace.join("\n")
+  exit 1
+rescue Exception
+  #$logger.fatal $!.class
+  #$logger.fatal $!.message
+  #$logger.info  $!.backtrace.join("\n")
+  exit 13
+end
+
+exit 0
+

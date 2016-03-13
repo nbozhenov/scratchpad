@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+set -o nounset
+shopt -s nullglob
+
+fail() {
+  local msg="Internal error"
+  if [ $# -ge 1 ]; then
+    msg="$@"
+  fi
+  echo "$msg" >&2
+  exit 1
+}
+
+abspath() {
+  for i in "$@"; do
+    if [ "${i:0:1}" = "/" ]; then
+      echo "$i"
+    else
+      echo "`pwd`/$i"
+    fi
+  done
+}
+
+eachpath() {
+  for i in "$@"; do
+    echo $(abspath "$i")
+  done
+}
+
+include() {
+  for i in "$@"; do
+    local oldpwd=`pwd`
+    cd "$i" && source "`abspath PATH`"
+    cd "$oldpwd"
+  done
+}
+
+binpath() {
+  true
+}
+manpath() {
+  true
+}
+infopath() {
+  true
+}
+
+run() {
+  for file in "$@"; do
+    local oldpwd=`pwd`
+    local file=`abspath "$file"`
+    cd `dirname "$file"`
+    source "$file"
+    cd "$oldpwd"
+  done
+}

@@ -1,0 +1,36 @@
+# /etc/fstab: static file system information.
+#
+# Use 'blkid' to print the universally unique identifier for a
+# device; this may be used with UUID= as a more robust way to name devices
+# that works even if disks are added and removed. See fstab(5).
+#
+# <file system> <mount point>   <type>  <options>       <dump>  <pass>
+# / was on /dev/sda2 during installation
+UUID=8c30e7d3-1482-4ed8-b351-17546d05db50 /               ext4    errors=remount-ro 0       1
+# swap was on /dev/sda1 during installation
+UUID=f8476130-674a-4b45-9540-5e340ea55f71 none            swap    sw              0       0
+
+
+UUID=7A88215188210CE7 /media/Storage ntfs defaults 0 2
+UUID=42725979-6251-4674-90cf-a494451e1473 /media/XFiles ext4 defaults 0 2
+
+#https://webdav.yandex.ru /media/Yandex.Disk davfs uid=yekka,gid=yekka,rw,user,_netdev 0 2
+
+//artur/LocalStore-1 /media/LocalStore-1.Artur cifs guest,user,_netdev,noauto,uid=yekka,gid=yekka 0 2
+
+//artur/LocalStore-2 /media/LocalStore-2.Artur cifs guest,user,_netdev,noauto,uid=yekka,gid=yekka 0 2
+
+/media/XFiles/bin       /home/yekka/bin         none    bind    0   2
+/media/XFiles/tmp       /home/yekka/tmp         none    bind    0   2
+/media/XFiles/Dropbox   /home/yekka/Dropbox     none    bind    0   2
+/media/XFiles/Library   /home/yekka/Library     none    bind    0   2
+/media/Storage          /home/yekka/Storage     none    bind    0   2
+/media/XFiles/Downloads /home/yekka/Downloads   none    bind    0   2
+/media/XFiles           /home/yekka/XFiles      none    bind    0   2
+
+#chroot
+#/home       /media/XFiles/chroot/ubuntu-64/home     none    bind    0   0
+#tmp        /media/XFiles/chroot/ubuntu-64/tmp      none    bind    0   0
+#/dev        /media/XFiles/chroot/ubuntu-64/dev      none    bind    0   0
+#/proc       /media/XFiles/chroot/ubuntu-64/proc     proc    defaults    0   0
+

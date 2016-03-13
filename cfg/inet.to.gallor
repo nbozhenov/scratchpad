@@ -1,0 +1,10 @@
+#!/bin/sh
+
+iptables -F
+iptables -t nat -F
+
+echo 1 > /proc/sys/net/ipv4/ip_forward
+
+iptables -t nat -A POSTROUTING -o eth1 -s 192.168.0.0/24 -j MASQUERADE
+iptables -A FORWARD -s 192.168.0.0/24 -j ACCEPT
+iptables -A FORWARD -d 192.168.0.0/24 -j ACCEPT

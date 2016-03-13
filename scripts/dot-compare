@@ -1,0 +1,25 @@
+#!/usr/bin/env ruby
+#
+$edge_set = {}
+
+File.open ARGV[0] do |file|
+  while (line = file.gets)
+    if (m = line.match /^[[:space:]]*([[:digit:]]+)[[:space:]]*->[[:space:]]*([[:digit:]]+).*color=black.*$/)
+      # puts "Add #{m[1]} -> #{m[2]}"
+      $edge_set[[m[1],m[2]]] = line
+    end
+  end
+end
+
+File.open ARGV[1] do |file|
+  while (line = file.gets)
+    if (m = line.match /^[[:space:]]*([[:digit:]]+)[[:space:]]*->[[:space:]]*([[:digit:]]+).*color=black.*$/)
+      # puts "Del #{m[1]} -> #{m[2]}"
+      $edge_set.delete([m[1],m[2]])
+    end
+  end
+end
+
+$edge_set.each do |k, v|
+  puts v
+end
