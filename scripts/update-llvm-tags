@@ -19,7 +19,7 @@ function create_tags_td() {
 }
 
 function create_tags_tblgen() {
-    ../llvm.build/bin/llvm-tblgen -gen-ctags                        \
+    ../llvm.bld/bin/llvm-tblgen -gen-ctags                        \
         -I include -I lib/Target/ARM                                           \
         -o tags.tblgen lib/Target/ARM/ARM.td
     script.tx -o tags.tblgen.fix --cin tags.tblgen                             \
@@ -39,7 +39,7 @@ function find_etags_files_helper() {
 function find_etags_files() {
     # хочу, чтобы хедеры парсились раньше остальных файлов
     find_etags_files_helper . h
-    find_etags_files_helper ../llvm.build inc
+    find_etags_files_helper ../llvm.bld inc
     find_etags_files_helper . cpp
 }
 
