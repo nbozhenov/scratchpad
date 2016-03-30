@@ -2,7 +2,7 @@
 ;; функций, каждая из которых ищет тег по-своему, со своей точностью. Замыкающие
 ;; этот список функции ищут совсем неразборчиво.
 
-(load-file "~/SkyDrive/code/emacs/init/etags-select.el")
+(load-file "~/z/scratchpad/emacs/init/etags-select.el")
 (define-key etags-select-mode-map [tab] (lambda () (interactive) (etags-select-goto-tag 4 t)))
 
 ;; (defadvice etags-select-find-tag-at-point (before y-push-mark-onto-ring)

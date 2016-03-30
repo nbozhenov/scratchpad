@@ -1,7 +1,7 @@
 ;; -*- lexical-binding: t -*-
 
 
-(defvar my-emacs-dir "~/SkyDrive/code/emacs")
+(defvar my-emacs-dir "~/z/scratchpad/emacs")
 (defvar my-init-dir (concat my-emacs-dir "/init"))
 
 (add-to-list 'load-path "~/.emacs.d")
