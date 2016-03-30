@@ -79,7 +79,9 @@ function y-gen-ps1 {
 
     if [ -n "$INSIDE_EMACS" ]; then
         green="\[\e[0;32m\]"
+        red="\[\e[0;31m\]"
         bgreen=""
+        bbrown=""
     fi
 
     local sigtstp=$((128 + $(kill -l SIGTSTP)))
