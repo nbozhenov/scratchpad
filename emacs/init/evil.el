@@ -2,7 +2,11 @@
 (setq evil-want-C-u-scroll t)
 ; C-i is equal to <tab> in terminal
 (setq evil-want-C-i-jump nil) ; one is still able to invoke evil-jump-forward
+(require 'evil)
 (evil-mode 1)
+
+;; FIXME: dirty hack
+(defun evil-max-scroll-down () 0)
 
 ;; This code, I hope, disables vim bindings for Space and Return
 ;; because they are quite useless in vim
@@ -71,6 +75,49 @@ The default is half the screen."
         (signal 'end-of-buffer nil)))))
 
 
+(evil-define-command evil-scroll-down (count)
+  "Scrolls the window and the cursor COUNT lines downwards.
+The default is half the screen."
+  :repeat nil
+  :keep-visual t
+  (interactive "P")
+  (evil-save-column
+    (let ((p (point))
+          (c (or count (1+ (/ (* 3 (evil-num-visible-lines)) 4)))))
+      (save-excursion
+        (scroll-up (min (evil-max-scroll-down) c)))
+      ;; use scroll-up instead of forward-line to scroll-down nicely when scrolling
+      ;; from the very beginning of a buffer in presence of scroll-margin variable
+      ;;(forward-line c)
+      (scroll-up c)
+      (when (= (line-number-at-pos p)
+               (line-number-at-pos (point)))
+        (signal 'end-of-buffer nil)))))
+
+
+
+(evil-define-command evil-scroll-up (count)
+  "Scrolls the window and the cursor COUNT lines upwards
+and sets `evil-ud-scroll-count'
+Uses `evil-ud-scroll-count' instead If COUNT not specified.
+Scrolls half the screen if `evil-ud-scroll-count' equals 0."
+  :repeat nil
+  :keep-visual t
+  (interactive "P")
+  (evil-save-column
+    (let* ((p (point))
+           (cv (or count (max 0 evil-ud-scroll-count)))
+           (c (if (= cv 0) (1+ (/ (* 3 (evil-num-visible-lines)) 4)) cv))
+           (scrollable (max 0
+                            (+ c (save-excursion
+                                   (goto-char (window-start))
+                                   (forward-line (- c)))))))
+      (setq evil-ud-scroll-count cv)
+      (save-excursion
+        (scroll-down scrollable))
+      (forward-line (- c))
+      (when (= 0 (evil-count-lines p (point)))
+        (signal 'beginning-of-buffer nil)))))
 
 
 
