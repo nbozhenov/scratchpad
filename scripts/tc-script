@@ -4,7 +4,7 @@ set -o nounset
 
 exec 3>&2
 
-SRCDIR=/data/src
+SRCDIR=~/l/src
 
 test "$#" -eq 1
 cd `dirname "$1"`
@@ -49,7 +49,7 @@ defaults() {
   fi
 
   # LANGS: c
-  LANGS="${LANGS:-c}"
+  LANGS="${LANGS:-c,c++}"
 
   # BOOTSTRAP: doesn't matter actually
   BOOTSTRAP="${BOOTSTRAP:-false}"
@@ -158,7 +158,6 @@ configure() {
       `test -v SYSROOT && printf "%q" --with-sysroot="$SYSROOT"`\
       --enable-checking                         \
       $BOOTSTRAPFLAG                            \
-      --disable-multilib                        \
       $MORECONFOPTS &> `logdir "$tool"`/configure.log
     runcmd touch "$stamp" &> /dev/null
   mypopd
