@@ -1,11 +1,11 @@
-source ~/SkyDrive/code/bash/harness.sh
+source ~/z/scratchpad/bash/harness.sh
 
-# remove directories inside ${HOME} from PATH
-export PATH=`echo $PATH | while read -d: path; do
-  if [ "${path:0:${#HOME}}" != "$HOME" ]; then
-    echo $path
-  fi
-done | y_merge :`
+## remove directories inside ${HOME} from PATH
+#export PATH=`echo $PATH | while read -d: path; do
+#  if [ "${path:0:${#HOME}}" != "$HOME" ]; then
+#    echo $path
+#  fi
+#done | y_merge :`
 
 #
 # Инфа по xterm control sequences
