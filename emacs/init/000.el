@@ -4,7 +4,6 @@
 (defvar my-emacs-dir "~/z/scratchpad/emacs")
 (defvar my-init-dir (concat my-emacs-dir "/init"))
 
-(add-to-list 'load-path "~/.emacs.d")
 (add-to-list 'load-path (concat my-emacs-dir "/elib"))
 
 (defvar my-init-files
