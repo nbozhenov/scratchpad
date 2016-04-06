@@ -79,8 +79,7 @@ syntax on
 au BufNewFile,BufRead *.page set filetype=mkd
 
 " copy to clipboard
-" set clipboard=unnamed
-set clipboard=unnamedplus
-
-
+" unnamedplus doesn't work in CygWin terminal
+" set clipboard=unnamedplus
+set clipboard=unnamed
 
