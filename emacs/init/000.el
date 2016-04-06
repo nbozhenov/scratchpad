@@ -21,6 +21,7 @@
        "customizations"
        "facilities"
        ;"sdcv"
+       "xclip"
        "llvm/emacs"
        "llvm/llvm-mode"
        "llvm/tablegen-mode"
