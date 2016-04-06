@@ -83,3 +83,5 @@ au BufNewFile,BufRead *.page set filetype=mkd
 " set clipboard=unnamedplus
 set clipboard=unnamed
 
+colorscheme desert
+highlight Comment ctermfg=DarkGrey
