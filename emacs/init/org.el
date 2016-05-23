@@ -3,6 +3,9 @@
 (setq org-enforce-todo-checkbox-dependencies t)
 (setq org-agenda-dim-blocked-tasks nil)
 
+;; Put ltxpng files into one place
+(setq org-latex-preview-ltxpng-directory "/tmp/ltxpng/")
+
 ;; statistics is about something like this:
 ;; * TODO Conquer the world [1/2]
 ;; ** DONE ...
@@ -82,6 +85,7 @@
         ("WAIT" . "chocolate4")
         ("SKIP" . (:foreground "DeepSkyBlue3" :weight bold))))
 
+(setq org-list-description-max-indent 5)
 
 ;; (add-hook 'org-mode-hook (lambda () (define-key org-mode-map (kbd "C-c p") 'org-fill-paragraph)))
 
