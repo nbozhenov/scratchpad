@@ -215,6 +215,16 @@ SHORTCUTS:
     dirs                    dirs -- list
     dirs NUM                dirs -- go NUM
     dirs PATH               dirs -- add PATH
+
+    ???
+
+go list
+go push [-t TAG/-] [DIR]
+go compact
+go rm NUM/TAG
+go NUM/TAG
+    ???
+[11] llvm-w.... ~/w/llvm-w
 EOF
 }
 
@@ -242,9 +252,9 @@ export EDITOR=vi
 set -o vi
 stty -ixon -ixoff # disable resume/pause in term, so C-s can be used to search history forward
 
-if [ -z "$TMUX" ] && [ "$HOSTNAME" = "$MY_HOSTNAME" ] && [ -z "$INSIDE_EMACS" ]; then
-    true #tmux
-fi
+alias cp='cp -i'
+alias mv='mv -i'
+
 
 function tags {
     etags --no-members --ignore-indentation --declarations -lc++ --regex=@tag.rules `./tag.files`
@@ -271,7 +281,7 @@ git-mark-fork () {
 }
 
 
-[ -f ~/PATH ] && y_append PATH `bash ~/SkyDrive/code/scripts/print-binpath ~/PATH`
+[ -f ~/PATH ] && y_append PATH `bash ~/z/scratchpad/scripts/print-binpath ~/PATH`
 
 # for docear.sh
-export _JAVA_OPTIONS='-Dawt.useSystemAAFontSettings=on'
+# export _JAVA_OPTIONS='-Dawt.useSystemAAFontSettings=on'

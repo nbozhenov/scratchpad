@@ -49,7 +49,7 @@ defaults() {
   fi
 
   # LANGS: c
-  LANGS="${LANGS:-c,c++}"
+  LANGS="${LANGS:-c,c++,lto}"
 
   # BOOTSTRAP: doesn't matter actually
   BOOTSTRAP="${BOOTSTRAP:-false}"
