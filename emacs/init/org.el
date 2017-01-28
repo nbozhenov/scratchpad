@@ -36,8 +36,7 @@
 (setq org-reverse-note-order t)
 
 ;; agenda
-(setq org-agenda-files (list (concat yorg-path "/journal.org")
-                             (concat yorg-path "/inbox.org")))
+(setq org-agenda-files (directory-files yorg-path t "\\.todo\\'"))
 (setq org-agenda-todo-ignore-scheduled t)
 (setq org-agenda-skip-scheduled-if-done t)
 (setq org-agenda-start-on-weekday nil)
@@ -78,8 +77,9 @@
                   "SKIP(s)")))
 
 (setq org-todo-keyword-faces
-      '(("FIXME" . "brown")
-        ("NOTE" . "dark red")
+      '(("FIXME" . "dark orange")
+        ; ("NOTE" . "dark red")
+        ("NOTE" . "orange red")
         ("TODO" . "firebrick")
         ("CURR" . "purple")
         ("WAIT" . "chocolate4")
