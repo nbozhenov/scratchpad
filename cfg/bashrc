@@ -40,8 +40,8 @@ source ~/z/scratchpad/bash/harness.sh
 function y-pretty-time {
     local seconds=`echo "scale=0; $1/1" | bc`
     local mseconds=`echo "scale=0; ($1 - $seconds) * 100 / 1" | bc`
-    local minutes=$(($seconds/60))
-    local hours=$(($minutes/60))
+    local minutes=$(( $seconds / 60 ))
+    local hours=$(( $minutes / 60 ))
 
     seconds=$(($seconds - (60 * $minutes)))
     minutes=$(($minutes - (60 * $hours)))
@@ -247,8 +247,8 @@ trap y-timer-start DEBUG
 PROMPT_COMMAND=y-timer-stop
 
 export TERM=xterm-256color
-export VISUAL=vi
-export EDITOR=vi
+export VISUAL=vim
+export EDITOR=vim
 set -o vi
 stty -ixon -ixoff # disable resume/pause in term, so C-s can be used to search history forward
 

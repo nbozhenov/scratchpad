@@ -10,7 +10,7 @@ end
 
 def main
 
-  bad_usage unless ARGV.size == 1
+  # bad_usage unless ARGV.size == 1
 
   if ARGV[0] == "-"
     file = Tempfile.new MYNAME
@@ -31,7 +31,12 @@ def main
 
   #--eval говорит не открывать файл, а только сделать eval
   #system "emacsclient", "-t", "-a", "", "-s", "cli", "--eval", "(prefer-coding-system 'koi8-r)", filename
-  system "emacsclient", "-t", "-a", "", "-s", "cli", filename
+  # system "emacsclient", "-t", "-a", "", "-s", "cli", filename
+  if filename
+    system "emacs", "-nw", filename
+  else
+    system "emacs", "-nw"
+  end
 
 end
 
