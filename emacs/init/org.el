@@ -88,6 +88,12 @@
 
 (setq org-list-description-max-indent 5)
 
+(add-hook
+ 'org-agenda-mode-hook
+ (lambda ()
+   (define-key org-agenda-mode-map (kbd "C-C C-p") 'org-agenda-priority)))
+
+
 ;; (add-hook 'org-mode-hook (lambda () (define-key org-mode-map (kbd "C-c p") 'org-fill-paragraph)))
 
 ;(add-hook 'org-mode-hook 'org-indent-mode)
