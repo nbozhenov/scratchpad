@@ -36,7 +36,8 @@
 (setq org-reverse-note-order t)
 
 ;; agenda
-(setq org-agenda-files (directory-files yorg-path t "\\.todo\\'"))
+(if (file-exists-p yorg-path)
+  (setq org-agenda-files (directory-files yorg-path t "\\.todo\\'")))
 (setq org-agenda-todo-ignore-scheduled t)
 (setq org-agenda-skip-scheduled-if-done t)
 (setq org-agenda-start-on-weekday nil)
