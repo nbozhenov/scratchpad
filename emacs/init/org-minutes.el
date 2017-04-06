@@ -1,20 +1,44 @@
 ;; Based on https://lists.gnu.org/archive/html/emacs-orgmode/2010-08/msg00224.html
 
+(defun org-colorize-faces-todo-classify (string)
+  (let (state)
+    (cond ((string-prefix-p "TODO:" string)
+           (setq state "wait"))
+          ((string-prefix-p "TODO" string)
+           (setq state "todo"))
+          ((string-prefix-p "WIP" string)
+           (setq state "wip"))
+          ((string-prefix-p "DONE" string)
+           (setq state "done")))
+    (list state)))
+
+
 (defun org-do-colorize-faces-todo (limit)
   "Run through the buffer and add overlays to colored text."
   (let* ((name-re "\\(Andrei\\|Artur\\|Nikolai\\|Olga\\)")
-         (pref-re "\\(TODO\\|DONE\\)")
+         (pref-re "\\(TODO\\|WIP\\|DONE\\)")
          (list-re (concat name-re "\\(\\+" name-re "\\)*"))
          (list-gen-re (concat " \\(" list-re "\\|All\\)"))
          (todo-re (concat pref-re "\\(" list-gen-re "\\)?:")))
     (while (re-search-forward todo-re limit t)
-      (if (string-prefix-p "TODO" (match-string 0))
-          (font-lock-prepend-text-property
-           (match-beginning 0) (match-end 0)
-           'face `((t (:foreground "Red2" :weight bold))))
-        (font-lock-prepend-text-property
-         (match-beginning 0) (match-end 0)
-         'face `((t (:foreground "ForestGreen" :weight bold))))))))
+      (let* ((whole (match-string 0))
+             (state (car (org-colorize-faces-todo-classify whole))))
+        (cond ((equal state "todo")
+               (font-lock-prepend-text-property
+                (match-beginning 0) (match-end 0)
+                'face `((t (:foreground "Red3" :weight bold)))))
+              ((equal state "done")
+               (font-lock-prepend-text-property
+                (match-beginning 0) (match-end 0)
+                'face `((t (:foreground "ForestGreen" :weight bold)))))
+              ((equal state "wait")
+               (font-lock-prepend-text-property
+                (match-beginning 0) (match-end 0)
+                'face `((t (:foreground "Red4" :weight bold)))))
+              ((equal state "wip")
+               (font-lock-prepend-text-property
+                (match-beginning 0) (match-end 0)
+                'face `((t (:foreground "Blue3" :weight bold))))))))))
 
 
 (defun org-set-font-lock-defaults ()
