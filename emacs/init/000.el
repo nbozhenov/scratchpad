@@ -18,6 +18,7 @@
        "tags"
        "yorg"
        "org"
+       "org-minutes"
        "customizations"
        "facilities"
        ;"sdcv"
