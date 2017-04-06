@@ -29,7 +29,7 @@
 (setq yorg-path (concat y-skydrive-path "/GTD"))
 
 ;; org-capture
-(setq org-default-notes-file (concat yorg-path "/inbox.org"))
+(setq org-default-notes-file (concat yorg-path "/Inbox.todo"))
 (setq org-capture-templates
       '(("t" "Incoming [T]asks" entry (file org-default-notes-file)
          "* TODO %?\n  %i\n" :empty-lines 1 :prepend t)))
