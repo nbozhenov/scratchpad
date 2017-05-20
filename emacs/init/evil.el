@@ -83,7 +83,7 @@ The default is half the screen."
   (interactive "P")
   (evil-save-column
     (let ((p (point))
-          (c (or count (1+ (/ (* 3 (evil-num-visible-lines)) 4)))))
+          (c (or count (1+ (/ (* 4 (evil-num-visible-lines)) 4)))))
       (save-excursion
         (scroll-up (min (evil-max-scroll-down) c)))
       ;; use scroll-up instead of forward-line to scroll-down nicely when scrolling
@@ -106,8 +106,8 @@ Scrolls half the screen if `evil-ud-scroll-count' equals 0."
   (interactive "P")
   (evil-save-column
     (let* ((p (point))
-           (cv (or count (max 0 evil-ud-scroll-count)))
-           (c (if (= cv 0) (1+ (/ (* 3 (evil-num-visible-lines)) 4)) cv))
+           (cv (or count (max 0 (if (boundp 'evil-ud-scroll-count) evil-ud-scroll-count 0))))
+           (c (if (= cv 0) (1+ (/ (* 4 (evil-num-visible-lines)) 4)) cv))
            (scrollable (max 0
                             (+ c (save-excursion
                                    (goto-char (window-start))
