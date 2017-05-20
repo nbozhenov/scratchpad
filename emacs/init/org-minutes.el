@@ -13,13 +13,43 @@
     (list state)))
 
 
-(defun org-do-colorize-faces-todo (limit)
-  "Run through the buffer and add overlays to colored text."
-  (let* ((name-re "\\(Andrei\\|Artur\\|Nikolai\\|Olga\\)")
+(defun org-colorize-minutes-get-regexp ()
+  (let* ((name-re "\\(Andrei\\|Artur\\|Nikolai\\|Olga\\|Yulia\\)")
          (pref-re "\\(TODO\\|WIP\\|DONE\\)")
          (list-re (concat name-re "\\(\\+" name-re "\\)*"))
-         (list-gen-re (concat " \\(" list-re "\\|All\\)"))
-         (todo-re (concat pref-re "\\(" list-gen-re "\\)?:")))
+         (list-gen-re (concat " \\(" list-re "\\|All\\)")))
+    (concat pref-re "\\(" list-gen-re "\\)?:")))
+
+
+(defun org-export-html-colorize-minutes (str)
+  (let ((todo-re (org-colorize-minutes-get-regexp)))
+    (replace-regexp-in-string
+     todo-re 
+     (lambda (text)
+       (let ((state (car (org-colorize-faces-todo-classify text))))
+         (cond ((equal state "todo")
+                (concat "<span style=\"color:#cd0000;font-weight:bold;\">"
+                        text
+                        "</span>"))
+               ((equal state "done")
+                (concat "<span style=\"color:#228b22;font-weight:bold;\">"
+                        text
+                        "</span>"))
+               ((equal state "wait")
+                (concat "<span style=\"color:#8b0000;font-weight:bold;\">"
+                        text
+                        "</span>"))
+               ((equal state "wip")
+                (concat "<span style=\"color:#cd2990;font-weight:bold;\">"
+                        text
+                        "</span>")))))
+     str)))
+
+
+
+(defun org-do-colorize-faces-todo (limit)
+  "Run through the buffer and add overlays to colored text."
+  (let ((todo-re (org-colorize-minutes-get-regexp)))
     (while (re-search-forward todo-re limit t)
       (let* ((whole (match-string 0))
              (state (car (org-colorize-faces-todo-classify whole))))
@@ -38,7 +68,7 @@
               ((equal state "wip")
                (font-lock-prepend-text-property
                 (match-beginning 0) (match-end 0)
-                'face `((t (:foreground "Blue3" :weight bold))))))))))
+                'face `((t (:foreground "maroon3" :weight bold))))))))))
 
 
 (defun org-set-font-lock-defaults ()
@@ -155,3 +185,35 @@
     (org-set-local 'font-lock-defaults
                    '(org-font-lock-keywords t nil nil backward-paragraph))
     (kill-local-variable 'font-lock-keywords) nil))
+
+(defun org-html-plain-text (text info)
+  "Transcode a TEXT string from Org to HTML.
+TEXT is the string to transcode.  INFO is a plist holding
+contextual information."
+  (let ((output text))
+    ;; Protect following characters: <, >, &.
+    (setq output (org-html-encode-plain-text output))
+    ;; Handle smart quotes.  Be sure to provide original string since
+    ;; OUTPUT may have been modified.
+    (when (plist-get info :with-smart-quotes)
+      (setq output (org-export-activate-smart-quotes output :html info text)))
+    ;; org-minutes.el
+    (setq output (org-export-html-colorize-minutes output))
+    ;; Handle special strings.
+    (when (plist-get info :with-special-strings)
+      (setq output (org-html-convert-special-strings output)))
+    ;; Handle break preservation if required.
+    (when (plist-get info :preserve-breaks)
+      (setq output
+	    (replace-regexp-in-string
+	     "\\(\\\\\\\\\\)?[ \t]*\n"
+	     (concat (org-html-close-tag "br" nil info) "\n") output)))
+    ;; Return value.
+    output))
+
+(text-scale-increase 2)
+
+
+;; %s|CMPLRS-[[:digit:]]\{4,6\}|[[https://jira01.devtools.intel.com/browse/\0][\0]]|gc
+;; %s|D[[:digit:]]\{4,6\}|[[https://reviews.llvm.org/\0][\0]]|gc
+;; %s|CQ\([[:digit:]]\{6\}\)|[[https://jf.clearquest.intel.com/cqweb/restapi/CQMS.DPD.JF/DPD2/RECORD/DPD200\1?format=HTML\&noframes=true\&recordType=Defect][\0]]|gc 
