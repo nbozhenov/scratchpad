@@ -1,4 +1,18 @@
-;; Based on https://lists.gnu.org/archive/html/emacs-orgmode/2010-08/msg00224.html
+(setq org-html-text-markup-alist
+  '((bold . "<b>%s</b>")
+    (code . "<font size=4><code>%s</code></font>")
+    (italic . "<i>%s</i>")
+    (strike-through . "<del>%s</del>")
+    (underline . "<span class=\"underline\">%s</span>")
+    (verbatim . "<font size=4><code>%s</code></font>")))
+
+(setq org-html-text-markup-alist
+  '((bold . "<b>%s</b>")
+    (code . "<code>%s</code>")
+    (italic . "<i>%s</i>")
+    (strike-through . "<del>%s</del>")
+    (underline . "<span class=\"underline\">%s</span>")
+    (verbatim . "<code>%s</code>")))
 
 (defun org-colorize-faces-todo-classify (string)
   (let (state)
@@ -14,7 +28,7 @@
 
 
 (defun org-colorize-minutes-get-regexp ()
-  (let* ((name-re "\\(Andrei\\|Artur\\|Nikolai\\|Olga\\|Yulia\\)")
+  (let* ((name-re "\\(Andrei\\|Artur\\|Nikolai\\|Olga\\|Yulia\\|Daniel\\)")
          (pref-re "\\(TODO\\|WIP\\|DONE\\)")
          (list-re (concat name-re "\\(\\+" name-re "\\)*"))
          (list-gen-re (concat " \\(" list-re "\\|All\\)")))
@@ -211,9 +225,30 @@ contextual information."
     ;; Return value.
     output))
 
-(text-scale-increase 2)
+
+(defun org-minutes-highlight-links--impl (short-link-pattern long-link-pattern)
+  (goto-char (point-min))
+  (while (re-search-forward (concat "\\([[:graph:]]?\\)" short-link-pattern "\\b") nil t)
+    (let ((m (match-string 0))
+          replacement)
+      (when (eq (length (match-string 1)) 0)
+        (setq replacement (format (concat "[[" long-link-pattern "][%s]]") m m))
+        (replace-match replacement t)))))
+
+(defun org-minutes-highlight-links ()
+  (interactive)
+  (save-excursion
+    (org-minutes-highlight-links--impl "rL[[:digit:]]\\{3,\\}" "https://reviews.llvm.org/%s")
+    (org-minutes-highlight-links--impl "D[[:digit:]]\\{3,\\}" "https://reviews.llvm.org/%s")
+    (org-minutes-highlight-links--impl "CMPLRS-\\([[:digit:]]+\\)" "https://jira01.devtools.intel.com/browse/%s")))
+
+(global-unset-key (kbd "C-x C-l"))
+(define-key org-mode-map (kbd "C-x C-l") 'org-minutes-highlight-links)
+
+; (text-scale-increase 2)
 
 
 ;; %s|CMPLRS-[[:digit:]]\{4,6\}|[[https://jira01.devtools.intel.com/browse/\0][\0]]|gc
 ;; %s|D[[:digit:]]\{4,6\}|[[https://reviews.llvm.org/\0][\0]]|gc
+;; %s|rl[[:digit:]]\{4,6\}|[[https://reviews.llvm.org/\0][\0]]|gc
 ;; %s|CQ\([[:digit:]]\{6\}\)|[[https://jf.clearquest.intel.com/cqweb/restapi/CQMS.DPD.JF/DPD2/RECORD/DPD200\1?format=HTML\&noframes=true\&recordType=Defect][\0]]|gc 

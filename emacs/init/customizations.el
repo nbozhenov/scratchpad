@@ -1,5 +1,6 @@
 ;; background-color
 (set-background-color "white")
+
 ;; When point is on one of the paired characters, the other is highlighted.
 (show-paren-mode 1)
 
@@ -13,7 +14,7 @@
 ;; Number of lines of margin at the top and bottom of a window.
 (setq scroll-margin 10)
 
-;; disable toolbar and menubar
+;; Do not disable toolbar and menubar
 (tool-bar-mode 0)
 (menu-bar-mode 0) ; `C-RClick' invokes the menu
 
