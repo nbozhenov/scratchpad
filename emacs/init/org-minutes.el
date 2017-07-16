@@ -225,22 +225,49 @@ contextual information."
     ;; Return value.
     output))
 
+;; Searches for the beginning of a text matching the REGEX and surrounding POINT
+;; TODO: optimize regexp
+(defun my-re-search-surrounding (pattern limit)
+  (let ((pos (point))
+        retval)
+    (unless limit (setq limit (point-min)))
+    (while (and (not retval) (>= pos limit))
+      (setq retval (looking-at pattern))
+      (unless retval
+        (setq pos (1- pos))
+        (goto-char pos)))
+    retval))
 
 (defun org-minutes-highlight-links--impl (short-link-pattern long-link-pattern)
-  (goto-char (point-min))
-  (while (re-search-forward (concat "\\([[:graph:]]?\\)" short-link-pattern "\\b") nil t)
-    (let ((m (match-string 0))
-          replacement)
-      (when (eq (length (match-string 1)) 0)
-        (setq replacement (format (concat "[[" long-link-pattern "][%s]]") m m))
-        (replace-match replacement t)))))
+  (let ((full-link-pattern (concat "\\[\\[" (format long-link-pattern short-link-pattern) "\\]\\[" short-link-pattern "\\]\\]"))
+        (initial-position (point))
+        (line-begin (line-beginning-position))
+        match-begin
+        short-link
+        org-link-begin
+        replacement)
+    (when (and (my-re-search-surrounding short-link-pattern line-begin)
+               (>= (match-end 0) initial-position))
+      ; Remember where the matched string begins.
+      (setq match-begin (point))
+      ; Try to find a surrounding org-link and bail out if the link in question is already formatted.
+      (setq org-link-begin (my-re-search-surrounding full-link-pattern line-begin))
+      (when (or (not org-link-begin)
+                (< (match-end 0) initial-position))
+        (goto-char match-begin)
+        (re-search-forward short-link-pattern)
+        (setq short-link (match-string 0))
+        (setq replacement (format (concat "[[" long-link-pattern "][%s]]") short-link short-link))
+        (replace-match replacement t)
+        t))))
 
+
+; TODO: удалить повторы
 (defun org-minutes-highlight-links ()
   (interactive)
-  (save-excursion
-    (org-minutes-highlight-links--impl "rL[[:digit:]]\\{3,\\}" "https://reviews.llvm.org/%s")
-    (org-minutes-highlight-links--impl "D[[:digit:]]\\{3,\\}" "https://reviews.llvm.org/%s")
-    (org-minutes-highlight-links--impl "CMPLRS-\\([[:digit:]]+\\)" "https://jira01.devtools.intel.com/browse/%s")))
+  (unless (save-excursion (org-minutes-highlight-links--impl "rL[[:digit:]]\\{3,\\}" "https://reviews.llvm.org/%s"))
+    (unless (save-excursion (org-minutes-highlight-links--impl "D[[:digit:]]\\{3,\\}" "https://reviews.llvm.org/%s")))
+    (save-excursion (org-minutes-highlight-links--impl "CMPLRS-\\([[:digit:]]+\\)" "https://jira01.devtools.intel.com/browse/%s"))))
 
 (global-unset-key (kbd "C-x C-l"))
 (define-key org-mode-map (kbd "C-x C-l") 'org-minutes-highlight-links)
