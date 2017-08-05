@@ -86,9 +86,13 @@
                       (list 0 'org-minutes-skip-face 'prepend))
                 retval))))
 
-;; TODO: properly implement
 (defun org-minutes-get-participants ()
-  (list "Nikolai" "Andrei" "Artur" "Olga" "Daniel" "Julia"))
+  (save-excursion
+    (let ((retval nil))
+      (goto-char (point-min))
+      (while (re-search-forward "^#\\+PARTICIPANTS:\\(.*\\)" nil t)
+        (setq retval (append retval (split-string (match-string 1)))))
+      retval)))
 
 (defun org-minutes-get-participants-re (prefix)
   (concat prefix " \\("
