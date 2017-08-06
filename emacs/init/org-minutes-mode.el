@@ -82,6 +82,10 @@
                       (list 0 'org-minutes-wait-face 'prepend))
                 retval))
     (setq retval
+          (cons (list "DONE:"
+                      (list 0 'org-minutes-done-face 'prepend))
+                retval))
+    (setq retval
           (cons (list "SKIP:"
                       (list 0 'org-minutes-skip-face 'prepend))
                 retval))))
