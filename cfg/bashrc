@@ -281,7 +281,8 @@ git-mark-fork () {
 }
 
 
-[ -f ~/PATH ] && y_append PATH `bash ~/z/scratchpad/scripts/print-binpath ~/PATH`
+[ -f ~/PATH ] && x_append PATH `bash ~/z/scratchpad/scripts/print-binpath ~/PATH`
+[ -f ~/environ ] && source ~/environ
 
 # for docear.sh
 # export _JAVA_OPTIONS='-Dawt.useSystemAAFontSettings=on'

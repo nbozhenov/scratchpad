@@ -42,17 +42,17 @@ not () {
 
 #
 # example:
-# $ echo /etc /etc/fstab /home /nonexistent | y_filter "test -d placeholder"
+# $ echo /etc /etc/fstab /home /nonexistent | x_filter "test -d placeholder"
 # /etc /home
 #
-y_filter () {
+x_filter () {
     local elt=
     xargs -n1 | while read elt; do
         eval "${1//placeholder/$elt}" && echo $elt
     done
 }
 
-y_merge () {
+x_merge () {
     local len=${#1}
     local len=$(( len + 1 ))
     xargs -n1 -I param echo -n ${1}param | cut -c ${len}-
@@ -61,13 +61,13 @@ y_merge () {
 #
 # example:
 # $ export INFOPATH=/old
-# $ y_append INFOPATH /new1 /new2
+# $ x_append INFOPATH /new1 /new2
 # $ echo $INFOPATH
 # /old:/new1:/new2
 #
-y_append () {
+x_append () {
     if [ $# -lt 1 ]; then
-        echo "y_append: invalid usage" >&2
+        echo "x_append: invalid usage" >&2
         return 1
     fi
 
@@ -91,13 +91,13 @@ y_append () {
 #
 # example:
 # $ export INFOPATH=/old
-# $ y_prepend INFOPATH /new1 /new2 /new3
+# $ x_prepend INFOPATH /new1 /new2 /new3
 # $ echo $INFOPATH
 # /new3:/new2:/new1:/old
 #
-y_prepend () {
+x_prepend () {
     if [ $# -lt 1 ]; then
-        echo "y_prepend: invalid usage" >&2
+        echo "x_prepend: invalid usage" >&2
         return 1
     fi
 
