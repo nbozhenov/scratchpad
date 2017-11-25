@@ -2,6 +2,41 @@
 set -o nounset
 set -o errexit
 
+CLANG=
+if [ $# -eq 0 ]; then
+  true
+elif [ $# -eq 1 ]; then
+  if [ "$1" = "--clang" ]; then
+    CLANG=_clang
+  else
+    echo "Unsupported option '$1'" >&2
+    exit 1
+  fi
+else
+  echo "WTF: '$@'" >&2
+  exit 1
+fi
+
+function find_build_dir() {
+  for i in \
+    ../../llvm.bld \
+    ../../bld \
+    ../builds/xmainefi2linux_debug/llvm \
+    ../builds/xmainefi2linux_prod/llvm
+  do
+    echo -n "Check $i: "
+    if [ -d "$i" ]; then
+      echo yes
+      BUILDDIR="$i"
+      return
+    else
+      echo no
+    fi
+  done
+  false
+}
+find_build_dir
+
 function log() {
     echo "$@" >&2
 }
@@ -19,12 +54,25 @@ function create_tags_td() {
 }
 
 function create_tags_tblgen() {
-    ../llvm.bld/bin/llvm-tblgen -gen-ctags                        \
+    $BUILDDIR/bin/llvm-tblgen -gen-ctags                                       \
         -I include -I lib/Target/ARM                                           \
         -o tags.tblgen lib/Target/ARM/ARM.td
     script.tx -o tags.tblgen.fix --cin tags.tblgen                             \
         --update-tagtext-lazily                                                \
         --delete-if-tagname '/^anonymous\.[.\w]*$/'
+}
+
+function find_etags_files_helper_clang() {
+    local SEARCHDIR="$1"
+    local EXTENSION="$2"
+    find "$SEARCHDIR" \( -path "$SEARCHDIR"/test                  -or          \
+                         -path "$SEARCHDIR"/unittests             -or          \
+                         -path "$SEARCHDIR"/tools/clang/test      -or          \
+                         -path "$SEARCHDIR"/tools/clang/unittests              \
+                      \) -prune -or -name \*.${EXTENSION} -print
+    if [ -e "$SEARCHDIR"/../clang ]; then
+      find_etags_files_helper_clang "$SEARCHDIR"/../clang "$EXTENSION"
+    fi
 }
 
 function find_etags_files_helper() {
@@ -38,9 +86,9 @@ function find_etags_files_helper() {
 
 function find_etags_files() {
     # хочу, чтобы хедеры парсились раньше остальных файлов
-    find_etags_files_helper . h
-    find_etags_files_helper ../llvm.bld inc
-    find_etags_files_helper . cpp
+    find_etags_files_helper$CLANG . h
+    find_etags_files_helper$CLANG $BUILDDIR inc
+    find_etags_files_helper$CLANG . cpp
 }
 
 #function create_tags_etags() {
