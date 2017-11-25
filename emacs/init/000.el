@@ -36,3 +36,12 @@
   (load (concat my-init-dir "/" config-file)))
 
 (require 'helm)
+
+(defun update-display-env ()
+  (setenv "DISPLAY"
+          (with-temp-buffer
+            (insert-file-contents
+             (concat (getenv "HOME") "/.display.txt"))
+            (buffer-string))))
+
+(run-with-timer 20 20 'update-display-env)

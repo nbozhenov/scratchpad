@@ -160,6 +160,12 @@ function y-gen-ps1 {
 
 function y-timer-start {
     y_timer_internal=${y_timer_internal:-"$(date +%s.%N)"}
+
+    if [ -z "$STY" -a -z "$TMUX" ]; then
+      echo -n $DISPLAY > ~/.display.txt
+    else
+      export DISPLAY=`cat ~/.display.txt`
+    fi
 }
 
 function y-timer-stop {
@@ -242,7 +248,7 @@ function my_dirs {
     fi
 }
     
-
+# TODO: remove other hooks (e.g. updating DISPLAY) from y-time-start
 trap y-timer-start DEBUG
 PROMPT_COMMAND=y-timer-stop
 
