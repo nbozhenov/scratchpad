@@ -10,7 +10,7 @@
       c-basic-offset 4)
 
 (defun my-gcc-hook ()
-  (when (string-match "/gcc/" buffer-file-name)
+  (when (string-match "/gcc/" (or buffer-file-name ""))
     (setq indent-tabs-mode t)
     (c-set-style "gnu" nil)))
 

@@ -160,6 +160,12 @@ function y-gen-ps1 {
 
 function y-timer-start {
     y_timer_internal=${y_timer_internal:-"$(date +%s.%N)"}
+
+    if [ -z "$STY" -a -z "$TMUX" ]; then
+      echo -n $DISPLAY > ~/.display.txt
+    else
+      export DISPLAY=`cat ~/.display.txt`
+    fi
 }
 
 function y-timer-stop {
@@ -242,7 +248,7 @@ function my_dirs {
     fi
 }
     
-
+# TODO: remove other hooks (e.g. updating DISPLAY) from y-time-start
 trap y-timer-start DEBUG
 PROMPT_COMMAND=y-timer-stop
 
@@ -281,7 +287,8 @@ git-mark-fork () {
 }
 
 
-[ -f ~/PATH ] && y_append PATH `bash ~/z/scratchpad/scripts/print-binpath ~/PATH`
+[ -f ~/PATH ] && x_append PATH `bash ~/z/scratchpad/scripts/print-binpath ~/PATH`
+[ -f ~/environ ] && source ~/environ
 
 # for docear.sh
 # export _JAVA_OPTIONS='-Dawt.useSystemAAFontSettings=on'

@@ -23,7 +23,7 @@
 (add-hook 'c-mode-hook
 	  (function
 	   (lambda nil 
-	     (if (string-match "llvm" buffer-file-name)
+	     (if (string-match "llvm" (or buffer-file-name ""))
 		 (progn
 		   (c-set-style "llvm.org")
 		   )
@@ -32,7 +32,7 @@
 (add-hook 'c++-mode-hook
 	  (function
 	   (lambda nil 
-	     (if (string-match "llvm" buffer-file-name)
+	     (if (string-match "llvm" (or buffer-file-name ""))
 		 (progn
 		   (c-set-style "llvm.org")
 		   )
