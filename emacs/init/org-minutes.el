@@ -22,6 +22,8 @@
            (setq state "todo"))
           ((string-prefix-p "WIP" string)
            (setq state "wip"))
+          ((string-prefix-p "SKIP" string)
+           (setq state "skip"))
           ((string-prefix-p "DONE" string)
            (setq state "done")))
     (list state)))
@@ -29,7 +31,7 @@
 
 (defun org-colorize-minutes-get-regexp ()
   (let* ((name-re "\\(Andrei\\|Artur\\|Nikolai\\|Olga\\|Yulia\\|Daniel\\)")
-         (pref-re "\\(TODO\\|WIP\\|DONE\\)")
+         (pref-re "\\(TODO\\|WIP\\|SKIP\\|DONE\\)")
          (list-re (concat name-re "\\(\\+" name-re "\\)*"))
          (list-gen-re (concat " \\(" list-re "\\|All\\)")))
     (concat pref-re "\\(" list-gen-re "\\)?:")))
@@ -51,6 +53,10 @@
                         "</span>"))
                ((equal state "wait")
                 (concat "<span style=\"color:#8b0000;font-weight:bold;\">"
+                        text
+                        "</span>"))
+               ((equal state "skip")
+                (concat "<span style=\"color:#009acd;font-weight:bold;\">"
                         text
                         "</span>"))
                ((equal state "wip")
@@ -266,8 +272,9 @@ contextual information."
 (defun org-minutes-highlight-links ()
   (interactive)
   (unless (save-excursion (org-minutes-highlight-links--impl "rL[[:digit:]]\\{3,\\}" "https://reviews.llvm.org/%s"))
-    (unless (save-excursion (org-minutes-highlight-links--impl "D[[:digit:]]\\{3,\\}" "https://reviews.llvm.org/%s")))
-    (save-excursion (org-minutes-highlight-links--impl "CMPLRS-\\([[:digit:]]+\\)" "https://jira01.devtools.intel.com/browse/%s"))))
+    (unless (save-excursion (org-minutes-highlight-links--impl "D[[:digit:]]\\{3,\\}" "https://reviews.llvm.org/%s"))
+      (unless (save-excursion (org-minutes-highlight-links--impl "LCPT-\\([[:digit:]]+\\)" "https://jira01.devtools.intel.com/browse/%s"))
+        (save-excursion (org-minutes-highlight-links--impl "CMPLRS-\\([[:digit:]]+\\)" "https://jira01.devtools.intel.com/browse/%s"))))))
 
 (global-unset-key (kbd "C-x C-l"))
 (define-key org-mode-map (kbd "C-x C-l") 'org-minutes-highlight-links)
