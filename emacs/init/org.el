@@ -43,6 +43,7 @@
 (setq org-agenda-start-on-weekday nil)
 (setq org-agenda-restore-windows-after-quit t)
 (setq org-agenda-window-setup 'current-window)
+(setq org-agenda-span 14)
 
 ;; shortcuts
 (global-set-key "\C-cl" 'org-store-link)
@@ -92,6 +93,23 @@
  'org-agenda-mode-hook
  (lambda ()
    (define-key org-agenda-mode-map (kbd "C-C C-p") 'org-agenda-priority)))
+
+(setq org-agenda-custom-commands
+      '(
+        ("h" "Home Agenda"
+         agenda
+         "+TODO=\"TODO\" +TAGS=\"office\""
+       ))
+)
+
+(setq org-agenda-custom-commands
+      (quote
+       (("h" "Home Agenda"
+         ((agenda "" ((org-agenda-skip-function
+                       '(org-agenda-skip-entry-if 'notregexp ":home:"))))))
+         ("o" "Office Agenda"
+          ((agenda "" ((org-agenda-skip-function
+                        '(org-agenda-skip-entry-if 'regexp ":home:")))))))))
 
 
 ;; (add-hook 'org-mode-hook (lambda () (define-key org-mode-map (kbd "C-c p") 'org-fill-paragraph)))
