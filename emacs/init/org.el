@@ -95,21 +95,25 @@
    (define-key org-agenda-mode-map (kbd "C-C C-p") 'org-agenda-priority)))
 
 (setq org-agenda-custom-commands
-      '(
-        ("h" "Home Agenda"
-         agenda
-         "+TODO=\"TODO\" +TAGS=\"office\""
-       ))
-)
+      (quote
+       (("h" "Home Agenda" ; taglist contains :home:
+         ((agenda "" ((org-agenda-skip-function
+                       '(org-agenda-skip-entry-if 'notregexp ":home:"))))))
+        ("o" "Office Agenda" ; taglist DOESN'T contain :home:
+         ((agenda "" ((org-agenda-skip-function
+                       '(org-agenda-skip-entry-if 'regexp ":home:")))))))))
 
 (setq org-agenda-custom-commands
       (quote
-       (("h" "Home Agenda"
+       (("h" "Home Agenda" ; taglist contains :home:
          ((agenda "" ((org-agenda-skip-function
                        '(org-agenda-skip-entry-if 'notregexp ":home:"))))))
-         ("o" "Office Agenda"
+         ("s" "Joint Agenda" ; taglist contains :svetlana:
           ((agenda "" ((org-agenda-skip-function
-                        '(org-agenda-skip-entry-if 'regexp ":home:")))))))))
+                        '(org-agenda-skip-entry-if 'notregexp ":svetlana:"))))))
+         ("o" "Office Agenda" ; taglist contains neither :home:, nor :svetlana:
+          ((agenda "" ((org-agenda-skip-function
+                        '(org-agenda-skip-entry-if 'regexp ":\\(home\\|svetlana\\):")))))))))
 
 
 ;; (add-hook 'org-mode-hook (lambda () (define-key org-mode-map (kbd "C-c p") 'org-fill-paragraph)))

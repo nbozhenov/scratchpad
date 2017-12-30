@@ -7,9 +7,9 @@
 (defun load-emacs-tags ()
   "Load TAGS pertaining to emacs sources"
   (interactive)
-  (setq tags-table-list 
-	'("/home/yekka/.emacs.d/TAGS" 
-	  "/media/XFiles/build/emacs-24.3/lisp/TAGS" 
+  (setq tags-table-list
+	'("/home/yekka/.emacs.d/TAGS"
+	  "/media/XFiles/build/emacs-24.3/lisp/TAGS"
 	  "/media/XFiles/build/emacs-24.3/TAGS"))
   (setq tags-file-name nil))
 
@@ -21,8 +21,7 @@
   (interactive)
   (set-debug nil))
 
-(defun set-debug (val)  
+(defun set-debug (val)
   (setq debug-on-error val
         debug-on-signal val
         debug-on-quit val))
-  
