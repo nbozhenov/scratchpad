@@ -99,15 +99,6 @@
        (("h" "Home Agenda" ; taglist contains :home:
          ((agenda "" ((org-agenda-skip-function
                        '(org-agenda-skip-entry-if 'notregexp ":home:"))))))
-        ("o" "Office Agenda" ; taglist DOESN'T contain :home:
-         ((agenda "" ((org-agenda-skip-function
-                       '(org-agenda-skip-entry-if 'regexp ":home:")))))))))
-
-(setq org-agenda-custom-commands
-      (quote
-       (("h" "Home Agenda" ; taglist contains :home:
-         ((agenda "" ((org-agenda-skip-function
-                       '(org-agenda-skip-entry-if 'notregexp ":home:"))))))
          ("s" "Joint Agenda" ; taglist contains :svetlana:
           ((agenda "" ((org-agenda-skip-function
                         '(org-agenda-skip-entry-if 'notregexp ":svetlana:"))))))
@@ -115,6 +106,14 @@
           ((agenda "" ((org-agenda-skip-function
                         '(org-agenda-skip-entry-if 'regexp ":\\(home\\|svetlana\\):")))))))))
 
+;; Allow bold/emphasis span up to 3+1 lines.
+;; https://emacs.stackexchange.com/questions/13820/inline-verbatim-and-code-with-quotes-in-org-mode
+(setcar (nthcdr 4 org-emphasis-regexp-components) 2)
+(org-set-emph-re 'org-emphasis-regexp-components org-emphasis-regexp-components)
+
+;; Never insert a blank line between list entries automatically.
+;; (setq org-blank-before-new-entry nil)
+(setq org-blank-before-new-entry '((heading . t) (plain-list-item . nil)))
 
 ;; (add-hook 'org-mode-hook (lambda () (define-key org-mode-map (kbd "C-c p") 'org-fill-paragraph)))
 

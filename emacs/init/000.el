@@ -45,3 +45,5 @@
             (buffer-string))))
 
 (run-with-timer 20 20 'update-display-env)
+
+(setq dired-free-space-program nil)
