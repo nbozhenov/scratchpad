@@ -115,6 +115,10 @@
 ;; (setq org-blank-before-new-entry nil)
 (setq org-blank-before-new-entry '((heading . t) (plain-list-item . nil)))
 
+(setq org-highest-priority ?A
+      org-lowest-priority  ?D
+      org-default-priority ?C)
+
 ;; (add-hook 'org-mode-hook (lambda () (define-key org-mode-map (kbd "C-c p") 'org-fill-paragraph)))
 
 ;(add-hook 'org-mode-hook 'org-indent-mode)
