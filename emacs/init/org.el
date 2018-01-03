@@ -36,8 +36,17 @@
 (setq org-reverse-note-order t)
 
 ;; agenda
-(if (file-exists-p yorg-path)
-  (setq org-agenda-files (directory-files yorg-path t "\\.todo\\'")))
+(defun my-org-agenda-files-refresh ()
+  (interactive)
+  (setq org-agenda-files
+        (apply #'append
+               (mapcar (lambda (x) (directory-files-recursively x "^[[:alnum:]].*\\.todo\\'"))
+                       (-filter #'file-directory-p
+                                (list (concat y-skydrive-path "/PIM")
+                                      "/cygdrive/c/Users/nbozheno/Intel/devel"
+                                      yorg-path))))))
+(my-org-agenda-files-refresh)
+
 (setq org-agenda-todo-ignore-scheduled nil)
 (setq org-agenda-skip-scheduled-if-done t)
 (setq org-agenda-start-on-weekday nil)
