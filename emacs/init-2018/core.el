@@ -52,7 +52,7 @@
 (setq max-lisp-eval-depth 3000)
 
 ;; Buffers (see also helm.el)
-(global-set-key "\C-xb" 'buffer-menu)
+(global-set-key "\C-x\C-b" 'buffer-menu)
 
 ; unbind set-fill-column (quite useless binding)
 (global-unset-key "\C-xf") 
