@@ -1,4 +1,10 @@
 ;; -*- lexical-binding: t -*-
+;;
+;; TODO: split tags:
+;;  1) location (home/office/...)
+;;  2) privacy (private/public/sveta)
+;;  3) domain (work, home, sveta, finance, ...)
+;;
 (setq org-enforce-todo-dependencies t)
 (setq org-enforce-todo-checkbox-dependencies t)
 (setq org-agenda-dim-blocked-tasks nil)
@@ -42,8 +48,7 @@
         (apply #'append
                (mapcar (lambda (x) (directory-files-recursively x "^[[:alnum:]].*\\.todo\\'"))
                        (-filter #'file-directory-p
-                                (list (concat y-skydrive-path "/PIM")
-                                      "/cygdrive/c/Users/nbozheno/Intel/devel"
+                                (list "/cygdrive/c/Users/nbozheno/Intel/devel"
                                       yorg-path))))))
 (my-org-agenda-files-refresh)
 
@@ -176,7 +181,8 @@
               (org-agenda-skip-function ,(macroexpand
                                           `(my-org-agenda-skip-macro
                                             ,type
-                                            org-agenda-skip-entry-if 'nottodo '("TODO" "WAIT"))))))
+                                            ;; TODO: add CURR keyword
+                                            org-agenda-skip-entry-if 'todo '("PROJECT"))))))
 
      (todo "PROJECT"
            ((org-agenda-overriding-header "Active Projects")
@@ -190,6 +196,7 @@
      (todo "PROJECT|TODO" ;; PROJECT is necessary in this list to feed it into skip function
            ((org-agenda-overriding-header "Incoming Tasks")
             (org-agenda-todo-ignore-scheduled t)
+            (org-agenda-todo-ignore-deadlines 'all)
             (org-agenda-skip-function ,(macroexpand
                                         `(my-org-agenda-skip-macro
                                           ,type
@@ -198,6 +205,7 @@
      (todo "PROJECT|WAIT" ;; PROJECT is necessary in this list to feed it into skip function
            ((org-agenda-overriding-header "Postponed Tasks")
             (org-agenda-todo-ignore-scheduled t)
+            (org-agenda-todo-ignore-deadlines 'all)
             (org-agenda-skip-function ,(macroexpand
                                         `(my-org-agenda-skip-macro
                                           ,type
@@ -240,6 +248,9 @@
           '(my-org-agenda-custom-template "j" "Joint Agenda" "sveta"))
         ))
 
+(setq org-refile-targets '((org-agenda-files . (:maxlevel . 1))))
+(setq org-refile-use-outline-path 'file)
+(setq org-outline-path-complete-in-steps nil)
 
 ;; Allow bold/emphasis span up to 3+1 lines.
 ;; https://emacs.stackexchange.com/questions/13820/inline-verbatim-and-code-with-quotes-in-org-mode
