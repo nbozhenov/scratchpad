@@ -15,6 +15,7 @@
   (list
    "core"
    "devel"
+   ; "devel-gcc"
    "evil"
    "helm"
    "misc"
