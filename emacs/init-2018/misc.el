@@ -18,6 +18,11 @@
 (add-hook 'package-menu-mode-hook 'hl-line-mode)
 
 ;;
+;; dired-mode
+;;
+(setq dired-free-space-program nil)
+
+;;
 ;; Enable/disable misc modes.
 ;;
 (show-paren-mode 1) ;; show matching parenthesis
