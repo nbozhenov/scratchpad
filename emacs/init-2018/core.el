@@ -9,6 +9,20 @@
     kept-new-versions 20   ; how many of the newest versions to keep
     kept-old-versions 5)   ; and how many of the old
 
+
+;;
+;; DISPLAY environment variable
+;;
+(defun my-update-display-env ()
+  (let ((filename (concat (getenv "HOME") "/.display.txt")))
+    (when (file-exists-p filename)
+      (setenv "DISPLAY"
+              (with-temp-buffer
+                (insert-file-contents filename)
+                (buffer-string))))))
+(run-with-timer 20 20 'my-update-display-env)
+
+
 ;;
 ;; Interface
 ;;
