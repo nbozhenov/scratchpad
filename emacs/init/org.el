@@ -47,7 +47,7 @@
   (setq org-agenda-files
         (apply #'append
                (mapcar (lambda (x) (directory-files-recursively x "^[[:alnum:]].*\\.todo\\'"))
-                       (-filter #'file-directory-p
+                       (y-filter #'file-directory-p
                                 (list "/cygdrive/c/Users/nbozheno/Intel/devel"
                                       yorg-path))))))
 (my-org-agenda-files-refresh)
