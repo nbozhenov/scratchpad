@@ -32,6 +32,27 @@
 
 
 ;;
+;; company-mode
+;;
+
+;; For rtags, *.el files should match rtags version.
+(dolist (config-file (list "rtags.el" "helm-rtags.el" "company-rtags.el" "flycheck-rtags.el"))
+  (load (concat my-emacs-init-dir "/third_party/rtags-2.18/" config-file)))
+
+(setq rtags-autostart-diagnostics t)
+(rtags-diagnostics)
+(setq rtags-completions-enabled t)
+(push 'company-rtags company-backends)
+(global-company-mode)
+
+;; This is a temporary association. It must be revisited later as it is not
+;; clear whether a better shortcut (C-n) should be used, and how much useful is
+;; the original function bound to M-/.
+(define-key global-map (kbd "M-/") nil)
+(define-key evil-insert-state-map (kbd "M-/") 'company-complete)
+
+
+;;
 ;; Keybindings
 ;;
 (rtags-enable-standard-keybindings global-map)
