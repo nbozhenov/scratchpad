@@ -28,7 +28,7 @@
 (setq evil-emacs-state-modes nil)
 
 (require 'evil-magit)
-(define-key global-map (kbd "\C-cdg") 'magit-status)
+(define-key global-map (kbd "\C-cg") 'magit-status)
 
 ;;
 ;; Define some useful commands

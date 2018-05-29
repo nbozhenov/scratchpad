@@ -23,16 +23,18 @@
 (require 'clang-format)
 (add-hook 'c-mode-hook
           (lambda ()
-            (define-key c-mode-map (kbd "\C-cdf") 'clang-format)))
+            (define-key c-mode-map (kbd "\C-c\C-c") 'comment-or-uncomment-region)
+            (define-key c-mode-map (kbd "\C-cf") 'clang-format)))
 (add-hook 'c++-mode-hook
           (lambda ()
-            (define-key c++-mode-map (kbd "\C-cdf") 'clang-format)))
+            (define-key c++-mode-map (kbd "\C-c\C-c") 'comment-or-uncomment-region)
+            (define-key c++-mode-map (kbd "\C-cf") 'clang-format)))
 
 
 ;;
 ;; Keybindings
 ;;
-(define-key global-map (kbd "\C-cdc") 'comment-or-uncomment-region)
+(rtags-enable-standard-keybindings global-map)
 
 
 ;;
