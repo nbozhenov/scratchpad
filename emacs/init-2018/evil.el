@@ -4,12 +4,16 @@
 (setq evil-search-wrap nil)
 ; (setq evil-want-C-i-jump nil)
 (setq evil-want-C-u-scroll t)
+(setq evil-want-integration nil)
 
 ;;
 ;; Load and enable evil.
 ;;
 (require 'evil)
 (evil-mode 1)
+
+(setq evil-collection-setup-minibuffer t)
+(evil-collection-init)
 
 ;;
 ;; Cursor customization (obviously, for GUI mode only).
