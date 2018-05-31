@@ -27,12 +27,19 @@
 
 
 ;;
-;; company-mode
+;; RTAGS
 ;;
 
-;; For rtags, *.el files should match rtags version.
-(dolist (config-file (list "rtags.el" "helm-rtags.el" "company-rtags.el" "flycheck-rtags.el"))
-  (load (concat my-emacs-init-dir "/third_party/rtags-2.18/" config-file)))
+(require 'rtags)
+(require 'helm-rtags)
+(require 'company-rtags)
+(require 'flycheck-rtags)
+(rtags-enable-standard-keybindings global-map)
+
+
+;;
+;; company-mode
+;;
 
 (setq rtags-autostart-diagnostics t)
 (rtags-diagnostics)
@@ -45,9 +52,3 @@
 ;; the original function bound to M-/.
 (define-key global-map (kbd "M-/") nil)
 (define-key evil-insert-state-map (kbd "M-/") 'company-complete)
-
-
-;;
-;; Keybindings
-;;
-(rtags-enable-standard-keybindings global-map)

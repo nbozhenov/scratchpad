@@ -9,7 +9,11 @@
 (defvar my-emacs-init-dir (concat my-emacs-dir "/init-2018"))
 
 (add-to-list 'load-path (concat my-emacs-dir "/elib"))
+;; TODO: move this requirement into org.el.
 (require 'y-hs)
+
+;; For rtags, *.el files should match rtags version.
+(add-to-list 'load-path (concat my-emacs-init-dir "/third_party/rtags-2.18"))
 
 (defvar my-emacs-init-files
   (list
