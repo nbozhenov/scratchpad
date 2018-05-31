@@ -51,15 +51,3 @@
 ;; Keybindings
 ;;
 (rtags-enable-standard-keybindings global-map)
-
-
-;;
-;; UNDERSCORE is a part of a word!
-;;
-(modify-syntax-entry ?_ "w")
-(add-hook 'c-mode-hook
-          (lambda ()
-            (modify-syntax-entry ?_ "w" c-mode-syntax-table)))
-(add-hook 'c++-mode-hook
-          (lambda ()
-            (modify-syntax-entry ?_ "w" c++-mode-syntax-table)))
