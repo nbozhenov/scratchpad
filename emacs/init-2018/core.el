@@ -71,3 +71,6 @@
 ; unbind set-fill-column (quite useless binding)
 (global-unset-key "\C-xf") 
 (custom-set-variables '(fill-column 80))
+
+; xclip
+(xclip-mode (if (getenv "SSH_CONNECTION") 1 0))
