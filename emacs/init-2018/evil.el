@@ -14,7 +14,6 @@
 ;; Treat my_c_var or my-lisp-var as one word.
 (defalias #'forward-evil-word #'forward-evil-symbol)
 
-(setq evil-collection-setup-minibuffer t)
 (evil-collection-init)
 (define-key company-active-map (kbd "C-j") 'company-complete-selection)
 
