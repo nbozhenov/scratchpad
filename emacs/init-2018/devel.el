@@ -46,3 +46,10 @@
 (setq rtags-completions-enabled t)
 (push 'company-rtags company-backends)
 (global-company-mode)
+
+
+;;
+;; Octave
+;;
+
+(add-to-list 'auto-mode-alist '("\\.m\\'" . octave-mode))
