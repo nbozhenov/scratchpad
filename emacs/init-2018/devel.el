@@ -19,16 +19,11 @@
 ;; open all headers in c++-mode
 (add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
 
-;; Clang-format
-(require 'clang-format)
-(add-hook 'c-mode-hook
+(add-hook 'c-mode-common-hook
           (lambda ()
-            (define-key c-mode-map (kbd "\C-c\C-c") 'comment-or-uncomment-region)
-            (define-key c-mode-map (kbd "\C-cf") 'clang-format)))
-(add-hook 'c++-mode-hook
-          (lambda ()
-            (define-key c++-mode-map (kbd "\C-c\C-c") 'comment-or-uncomment-region)
-            (define-key c++-mode-map (kbd "\C-cf") 'clang-format)))
+            (define-key c-mode-base-map (kbd "\C-cf") 'clang-format)
+            (define-key c-mode-base-map (kbd "\C-c\C-c") 'comment-or-uncomment-region)
+            ))
 
 
 ;;
