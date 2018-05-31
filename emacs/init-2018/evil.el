@@ -16,6 +16,7 @@
 
 (setq evil-collection-setup-minibuffer t)
 (evil-collection-init)
+(define-key company-active-map (kbd "C-j") 'company-complete-selection)
 
 ;;
 ;; Cursor customization (obviously, for GUI mode only).

@@ -18,8 +18,8 @@
 (defvar my-emacs-init-files
   (list
    "core"
-   "evil"
    "devel"
+   "evil"
    "helm"
    "misc"
    ))

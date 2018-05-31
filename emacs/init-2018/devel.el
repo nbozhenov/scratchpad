@@ -46,9 +46,3 @@
 (setq rtags-completions-enabled t)
 (push 'company-rtags company-backends)
 (global-company-mode)
-
-;; This is a temporary association. It must be revisited later as it is not
-;; clear whether a better shortcut (C-n) should be used, and how much useful is
-;; the original function bound to M-/.
-(define-key global-map (kbd "M-/") nil)
-(define-key evil-insert-state-map (kbd "M-/") 'company-complete)
