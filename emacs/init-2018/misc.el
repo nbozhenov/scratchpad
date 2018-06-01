@@ -19,3 +19,5 @@
 (blink-cursor-mode 0) ; use non-blinking cursor
 (tool-bar-mode 0)
 (menu-bar-mode 0)
+(scroll-bar-mode 0)
+(add-to-list 'default-frame-alist '(fullscreen . maximized))
