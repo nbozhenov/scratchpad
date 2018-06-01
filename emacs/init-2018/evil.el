@@ -23,12 +23,6 @@
 (setq evil-insert-state-cursor 'bar)
 (setq evil-replace-state-cursor 'hollow)
 
-;;
-;; Enable proper evil state in various modes.
-;;
-(setq evil-motion-state-modes (append evil-emacs-state-modes evil-motion-state-modes))
-(setq evil-emacs-state-modes nil)
-
 (require 'evil-magit)
 (define-key global-map (kbd "\C-cg") 'magit-status)
 
