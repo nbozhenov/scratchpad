@@ -8,9 +8,8 @@
 (defvar my-emacs-dir "~/z/scratchpad/emacs")
 (defvar my-emacs-init-dir (concat my-emacs-dir "/init-2018"))
 
-(add-to-list 'load-path (concat my-emacs-dir "/elib"))
-;; TODO: move this requirement into org.el.
-(require 'y-hs)
+; (add-to-list 'load-path (concat my-emacs-dir "/elib"))
+; (require 'y-hs)
 
 ;; For rtags, *.el files should match rtags version.
 (add-to-list 'load-path (concat my-emacs-init-dir "/third_party/rtags-2.18"))
@@ -22,6 +21,7 @@
    "evil"
    "helm"
    "misc"
+   "org"
    ))
 
 (dolist (config-file my-emacs-init-files)

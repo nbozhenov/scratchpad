@@ -4,6 +4,7 @@
 (add-hook 'Buffer-menu-mode-hook 'hl-line-mode)
 (add-hook 'dired-mode-hook 'hl-line-mode)
 (add-hook 'package-menu-mode-hook 'hl-line-mode)
+(add-hook 'org-agenda-mode-hook 'hl-line-mode)
 
 ;;
 ;; dired-mode
