@@ -48,6 +48,13 @@
 (setq-default tab-width 8)
 (setq-default indent-tabs-mode nil)
 
+;; Make sure <tab> and <escape> work identically in GUI and in terminal. That
+;; is, translate their terminal representations into GUI form.
+(define-key input-decode-map (kbd "C-i") [tab])
+; M-x stops working in cygwin terminal if the line below is uncommented.
+; Seems that Alt is translated into some sequence including "C-[" combination.
+; (define-key input-decode-map (kbd "C-[") [escape])
+
 ;; One space between sentences
 ;; see desciption of `sentence-end' function for the other parameters
 (setq sentence-end-double-space nil)
