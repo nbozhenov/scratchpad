@@ -7,6 +7,12 @@
 (add-hook 'org-agenda-mode-hook 'hl-line-mode)
 
 ;;
+;; auto-fill-mode
+;;
+(add-hook 'text-mode-hook #'turn-on-auto-fill)
+(add-hook 'prog-mode-hook #'turn-on-auto-fill)
+
+;;
 ;; dired-mode
 ;;
 (setq dired-free-space-program nil)
