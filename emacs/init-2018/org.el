@@ -139,6 +139,7 @@
 ;;   (todo "PROJECT"
 ;;         ((org-agenda-overriding-header "Active Projects")
 ;;          (org-agenda-todo-ignore-scheduled (quote future))
+;;          (org-agenda-todo-ignore-time-comparison-use-seconds t)
 ;;          (org-agenda-skip-function
 ;;           (quote (if (my-init/org-agenda/skip-func "home")
 ;;                      (org-agenda-skip-entry-if (quote regexp) ".*")
@@ -175,6 +176,7 @@
      (todo "PROJECT"
            ((org-agenda-overriding-header "Active Projects")
             (org-agenda-todo-ignore-scheduled 'future)
+            (org-agenda-todo-ignore-time-comparison-use-seconds t)
             (org-agenda-skip-function ,(macroexpand
                                         `(my-init/org-agenda/skip-macro
                                           ,type
