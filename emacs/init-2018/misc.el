@@ -30,3 +30,11 @@
 (menu-bar-mode 0)
 (scroll-bar-mode 0)
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
+
+;;
+;; Hacks for windows
+;;
+(when (member system-type '(cygwin windows-nt ms-dos))
+  (setq dired-free-space-program nil)
+  (magit-auto-revert-mode 0)
+  (global-magit-file-mode 0))
