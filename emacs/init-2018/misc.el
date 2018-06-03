@@ -13,9 +13,11 @@
 (add-hook 'prog-mode-hook #'turn-on-auto-fill)
 
 ;;
-;; dired-mode
+;; profiler
 ;;
-(setq dired-free-space-program nil)
+(use-package profiler
+  :bind (:map profiler-report-mode-map
+         ("C-i" . 'profiler-report-expand-entry)))
 
 ;;
 ;; Enable/disable misc modes.
