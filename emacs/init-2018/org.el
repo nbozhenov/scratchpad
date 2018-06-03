@@ -100,11 +100,11 @@
       nil)
      ;; "office" : skip all tagged entries (except ones explicitely tagged with :office:)
      ((string= type "office")
-      (or (member-ignore-case "home" tags) (member-ignore-case "sveta" tags)))
-     ;; "home" : skip all entries unless they are tagged with :home:
+      (not (member-ignore-case "office" tags)))
+     ;; "home" : skip :office: entries
      ((string= type "home")
       (not (member-ignore-case "home" tags)))
-     ;; "home" : skip all entries unless they are tagged with :sveta:
+     ;; "sveta" : skip all entries unless they are tagged with :sveta:
      ((string= type "sveta")
       (not (member-ignore-case "sveta" tags)))
      (t
@@ -220,7 +220,6 @@
 
   (setq org-tag-alist '((:startgroup . nil)
                         ("office" . ?o)
-                        ("home" . ?h)
                         ("sveta" . ?s)
                         (:endgroup . nil)))
 
