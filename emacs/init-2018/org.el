@@ -92,6 +92,27 @@
 ) ; my-init/org-agenda/pkg-config
 
 
+(defun my-init/org-agenda/setup-calendar ()
+  (setq calendar-week-start-day 1)
+
+  (org-defkey org-read-date-minibuffer-local-map "\C-p"
+              (lambda () (interactive)
+                (org-eval-in-calendar '(calendar-backward-day 1))))
+  (org-defkey org-read-date-minibuffer-local-map "\C-n"
+              (lambda () (interactive)
+                (org-eval-in-calendar '(calendar-forward-day 1))))
+
+  (org-defkey org-read-date-minibuffer-local-map (kbd "C-'")
+              (lambda () (interactive)
+                ;; Go to the beginning of the prompt.
+                (goto-char (line-beginning-position))
+                (kill-line)
+                (org-eval-in-calendar '(calendar-goto-today))
+                (insert (format-time-string "%H:%M" (time-add (current-time) 900)))))
+
+) ; my-init/org-agenda/setup-calendar
+
+
 (defun my-init/org-agenda/skip-func (type)
   (let* ((tags (org-get-tags-at)))
     (cond
@@ -276,4 +297,5 @@
          ("k" . 'org-agenda-previous-line))
   :config
   (my-init/org-agenda/pkg-config)
+  (my-init/org-agenda/setup-calendar)
   (my-init/org-agenda/setup-gtd))
