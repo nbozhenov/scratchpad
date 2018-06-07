@@ -46,13 +46,20 @@
   (setq org-refile-use-outline-path 'file)
   (setq org-outline-path-complete-in-steps nil)
 
+  ;; Outlook integration
+  (setq outlook-executable
+        "/cygdrive/c/Program Files (x86)/Microsoft Office/Office15/OUTLOOK.EXE")
+  (org-add-link-type
+   "outlook"
+   (lambda (id) (w32-shell-execute "open" outlook-executable
+                                   (concat "outlook:" id))))
+
 ) ; my-init/org/pkg-config
 
 
 (use-package org
   :mode (("\\.todo$" . org-mode))
-  :config
-  (my-init/org/pkg-config))
+  :config (my-init/org/pkg-config))
 
 
 ;;
