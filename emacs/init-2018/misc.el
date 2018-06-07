@@ -71,6 +71,6 @@
 (column-number-mode 1) ; display column number in status line
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
 ;; These are two nice options for font selection. Need to make decision later.
-(add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono-9.5"))
+;; (add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono-9.5"))
 ;; DejaVu Sans Mono-9 looks bad for special characters and when bold.
-;; (add-to-list 'default-frame-alist '(font . "Input-9"))
+(add-to-list 'default-frame-alist '(font . "Input-9"))
