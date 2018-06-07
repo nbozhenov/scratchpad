@@ -20,6 +20,34 @@
          ("C-i" . 'profiler-report-expand-entry)))
 
 ;;
+;; Spell checking
+;;
+(use-package ispell
+  :defer t
+  :config
+  (setq ispell-program-name "hunspell"
+        ispell-dictionary "my_enru"
+        ispell-local-dictionary-alist '(("my_enru" "[[:alnum:]]" "[^[:alnum:]]"
+                                         "[-']" t ("-d" "my_enru") nil utf-8))))
+
+(use-package flyspell
+  :defer t
+  :hook ((text-mode . flyspell-mode)
+         (prog-mode . flyspell-prog-mode)))
+
+(use-package flyspell-correct-popup
+  :after flyspell
+  :bind (:map flyspell-mode-map
+              ("C-;" . nil) ; default binding doesn't work in terminal
+              ("C-'" . #'flyspell-correct-previous-word-generic)))
+
+(use-package popup
+  :defer t
+  :bind (:map popup-menu-keymap
+              ("C-j" . #'popup-select)
+              ("C-h" . #'popup-help)))
+
+;;
 ;; Enable/disable misc modes.
 ;;
 (show-paren-mode 1) ;; show matching parenthesis
