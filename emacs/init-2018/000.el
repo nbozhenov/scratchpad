@@ -5,6 +5,9 @@
 (package-initialize)
 (add-to-list 'package-archives '("melpa" . "http://melpa.milkbox.net/packages/"))
 
+(setq on-windows-p
+      (if (member system-type '(cygwin windows-nt)) t nil))
+
 (defvar my-emacs-dir "~/z/scratchpad/emacs")
 (defvar my-emacs-init-dir (concat my-emacs-dir "/init-2018"))
 
