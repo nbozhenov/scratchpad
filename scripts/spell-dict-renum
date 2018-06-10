@@ -1,0 +1,150 @@
+#!/usr/bin/env ruby
+
+# Limitations:
+# 1) assumes single-letter flags in compoundrules.
+# 2) assumes no parenthesis in compoundrules.
+# 3) FLAG num is not added automatically.
+# 4) many imlicit limitations caused by lack of proper parsing and semantic analysis.
+
+require "getoptlong"
+
+$input = [nil, nil]
+$output = [nil, nil]
+$nextcode = 1 # default value
+$affixes = {}
+$compoundrule_seen = false
+
+def printUsage
+  puts "dict-sfx-renum -i <input_aff_file> -o <output_aff_file> [-s <min_sfx_num>]"
+end
+
+def filePairForDict file
+  extname = File.extname(file)
+  dirname = File.dirname(file)
+  basename = File.basename(file, extname)
+
+  extname == ".aff" or raise "File name must be a path to .aff file"
+  prefix = dirname + File::SEPARATOR + basename
+  [ prefix + ".aff", prefix + ".dic" ]
+end
+
+def parseScriptArgs
+  opts = GetoptLong.new(
+    [ '--input', '-i', GetoptLong::REQUIRED_ARGUMENT ],
+    [ '--output', '-o', GetoptLong::REQUIRED_ARGUMENT ],
+    [ '--start', '-s', GetoptLong::REQUIRED_ARGUMENT ]
+  )
+
+  opts.each do |opt, arg|
+    case opt
+    when '--input'
+      $input = filePairForDict arg
+    when '--output'
+      $output = filePairForDict arg
+    when '--start'
+      arg =~ /^[1-9][0-9]*$/ or raise "-s option expects a positive number"
+      $nextcode = arg.to_i
+    else
+      printUsage
+      exit 1
+    end
+  end
+
+  unless $input[0] and $input[1] and $output[0] and $output[1]
+    printUsage
+    exit 1
+  end
+end
+
+def registerAffix affix
+  unless code = $affixes[affix]
+    code = $nextcode
+    $affixes[affix] = code
+    puts "#{affix}: #{code}"
+    $nextcode += 1
+  end
+  return code
+end
+
+def translateCompoundFlags flags
+  newflags = ""
+  flags.each_char do |ch|
+    raise "Not implemented" if [ '(', ')' ].include?(ch)
+
+    if [ '*', '?' ].include?(ch)
+      newflags += ch
+      next
+    end
+
+    num = registerAffix ch.to_s
+    newflags += "(#{num})"
+  end
+
+  return newflags
+end
+
+def translateDicFlags flags, hash
+  1.upto(flags.length) do |i|
+    substr = flags[0...i]
+    num = hash[substr]
+    next unless num
+    newflags = num.to_s
+    cont = flags[i..-1]
+    if cont.empty?
+      return newflags
+    else
+      return newflags + "," + translateDicFlags(cont, hash)
+    end
+  end
+
+  raise "Cannot translate: #{flags}"
+end
+
+def processAffFile
+  inaff = File.new($input[0])
+  outaff = File.new($output[0], "w")
+
+  inaff.readlines.each do |line|
+    line.match /^(SFX|PFX|NOSUGGEST|ONLYINCOMPOUND)([[:space:]]+)([[:graph:]]+)([[:space:]].*)$/ do |m|
+      sfx = m[3]
+      code = registerAffix sfx
+      line = m[1] + m[2] + code.to_s + m[4]
+    end
+
+    line.match /^(COMPOUNDRULE[[:space:]]+)([[:graph:]]*)[[:space:]]*$/ do |m|
+      unless $compoundrule_seen
+        # First COMPOUNDRULE line just declares number of following rules.
+        $compoundrule_seen = true
+        next
+      end
+      newflags = translateCompoundFlags m[2]
+      line = m[1] + newflags
+    end
+
+    outaff.puts line
+  end
+
+  inaff.close
+  outaff.close
+end
+
+def processDicFile
+  indic = File.new($input[1])
+  outdic = File.new($output[1], "w")
+
+  indic.readlines.each do |line|
+    line.match /^([^\/]+)\/(.*)$/ do |m|
+      flags = translateDicFlags m[2], $affixes
+      line = m[1] + "/" + flags
+    end
+
+    outdic.puts line
+  end
+
+  indic.close
+  outdic.close
+end
+
+parseScriptArgs
+processAffFile
+processDicFile
