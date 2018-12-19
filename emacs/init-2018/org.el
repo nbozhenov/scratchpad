@@ -249,7 +249,10 @@
           ("CANCEL" . "#404070")))
 
   (setq org-tag-alist '((:startgroup . nil)
+                        ("home" . ?h)
                         ("office" . ?o)
+                        (:endgroup . nil)
+                        (:startgroup . nil)
                         ("sveta" . ?s)
                         (:endgroup . nil)))
 
