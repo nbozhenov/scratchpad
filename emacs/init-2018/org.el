@@ -123,16 +123,16 @@
 (defun my-init/org-agenda/skip-func (type)
   (let* ((tags (org-get-tags-at)))
     (cond
-     ;; "all" : skip nothing
      ((string= type "all")
       nil)
-     ;; "office" : skip all tagged entries (except ones explicitely tagged with :office:)
      ((string= type "office")
-      (not (member-ignore-case "office" tags)))
-     ;; "home" : skip :office: entries
+      (or
+       (member-ignore-case "home" tags)
+       (member-ignore-case "sveta" tags)))
      ((string= type "home")
-      (not (member-ignore-case "home" tags)))
-     ;; "sveta" : skip all entries unless they are tagged with :sveta:
+      (or
+       (member-ignore-case "office" tags)
+       (member-ignore-case "sveta" tags)))
      ((string= type "sveta")
       (not (member-ignore-case "sveta" tags)))
      (t
@@ -289,9 +289,9 @@
           ,(macroexpand
             '(my-init/org-agenda/custom-template "y" "My Agenda" "all"))
           ,(macroexpand
-            '(my-init/org-agenda/custom-template "o" "My Office Agenda" "office"))
+            '(my-init/org-agenda/custom-template "o" "Office Agenda" "office"))
           ,(macroexpand
-            '(my-init/org-agenda/custom-template "h" "My Home Agenda" "home"))
+            '(my-init/org-agenda/custom-template "h" "Home Agenda" "home"))
           ,(macroexpand
             '(my-init/org-agenda/custom-template "j" "Joint Agenda" "sveta"))
           ))
