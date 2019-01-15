@@ -309,3 +309,9 @@
   (my-init/org-agenda/pkg-config)
   (my-init/org-agenda/setup-calendar)
   (my-init/org-agenda/setup-gtd))
+
+
+(use-package org-inlinetask
+  :after org
+  :config
+  (setq org-inlinetask-min-level 8))
