@@ -306,6 +306,7 @@
          ("j" . 'org-agenda-next-line)
          ("k" . 'org-agenda-previous-line))
   :config
+  (require 'cl)
   (my-init/org-agenda/pkg-config)
   (my-init/org-agenda/setup-calendar)
   (my-init/org-agenda/setup-gtd))
