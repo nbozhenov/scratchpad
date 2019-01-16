@@ -1,0 +1,7 @@
+[user]
+	email = Nikolai.Bozhenov@gmail.com
+	name = Nikolai Bozhenov
+[pull]
+	rebase = true
+[merge]
+	conflictstyle = diff3
