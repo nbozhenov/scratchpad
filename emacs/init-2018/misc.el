@@ -64,13 +64,21 @@
 ;;
 ;; Appearance and GUI customization
 ;;
-(tool-bar-mode 0)
 (menu-bar-mode 0)
-(scroll-bar-mode 0)
-(blink-cursor-mode 0)
 (column-number-mode 1) ; display column number in status line
-(add-to-list 'default-frame-alist '(fullscreen . maximized))
-;; These are two nice options for font selection. Need to make decision later.
-;; (add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono-9.5"))
-;; DejaVu Sans Mono-9 looks bad for special characters and when bold.
-(add-to-list 'default-frame-alist '(font . "Input-9"))
+
+(when window-system
+  (tool-bar-mode 0)
+  (scroll-bar-mode 0)
+  (blink-cursor-mode 0)
+  (add-to-list 'default-frame-alist '(fullscreen . maximized))
+
+  ;; An oversimplified adjustment to display sizes.
+  (setq my-display-type (if (> (x-display-pixel-height) 1200) '4k 'full-hd))
+  (let ((my-font (cond ((eq my-display-type '4k) "Input-11")
+                       ((eq my-display-type 'full-hd) "Input-9")
+                       (t (error "Unknown display type")))))
+    ;; These are two nice options for font selection.
+    ;; (add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono-9.5"))
+    ;; DejaVu Sans Mono-9 looks bad for special characters and when bold.
+    (add-to-list 'default-frame-alist (cons 'font my-font))))
