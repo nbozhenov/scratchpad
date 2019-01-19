@@ -54,6 +54,21 @@
    (lambda (id) (w32-shell-execute "open" outlook-executable
                                    (concat "outlook:" id))))
 
+  ;; LaTeX
+  (add-to-list 'org-latex-packages-alist '("" "cmap" t))
+  (add-to-list 'org-latex-packages-alist '("english,russian" "babel" t))
+  ; Use "hyperref" package with "unicode" option.
+  (dolist (elt org-latex-default-packages-alist)
+    (when (and (string= (nth 1 elt) "hyperref")
+               (string= (car elt) ""))
+      (setcar elt "unicode")))
+
+  ;; Inline images
+  (let ((my-scale (cond ((eq my-display-type '4k) 158)
+                        ((eq my-display-type 'full-hd) 96)
+                        (t (error "Unknown display type")))))
+    (setq org-image-actual-width (list (* 4 my-scale))))
+
 ) ; my-init/org/pkg-config
 
 
