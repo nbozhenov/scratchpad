@@ -33,7 +33,10 @@
 (use-package flyspell
   :defer t
   :hook ((text-mode . flyspell-mode)
-         (prog-mode . flyspell-prog-mode)))
+         ; flyspell-prog-mode gives a lot of false-positive diagnostics for
+         ; identifiers mentioned in comments.
+         ; (prog-mode . flyspell-prog-mode)
+         ))
 
 (use-package flyspell-correct-popup
   :after flyspell
