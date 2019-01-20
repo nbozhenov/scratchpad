@@ -4,7 +4,8 @@
 (setq evil-search-wrap nil)
 ; (setq evil-want-C-i-jump nil)
 (setq evil-want-C-u-scroll t)
-(setq evil-want-integration nil)
+(setq evil-want-integration t)
+(setq evil-want-keybinding nil)
 
 ;;
 ;; Load and enable evil.
