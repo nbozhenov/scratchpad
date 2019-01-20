@@ -29,22 +29,23 @@
 ;;
 ;; RTAGS
 ;;
-
-(require 'rtags)
-(require 'helm-rtags)
-(require 'company-rtags)
-(require 'flycheck-rtags)
-(rtags-enable-standard-keybindings global-map)
+(when my-init/rtags/installed-p
+  (require 'rtags)
+  (require 'helm-rtags)
+  (require 'company-rtags)
+  (require 'flycheck-rtags)
+  (rtags-enable-standard-keybindings global-map))
 
 
 ;;
 ;; company-mode
 ;;
 
-(setq rtags-autostart-diagnostics t)
-(rtags-diagnostics)
-(setq rtags-completions-enabled t)
-(push 'company-rtags company-backends)
+(when my-init/rtags/installed-p
+  (setq rtags-autostart-diagnostics t)
+  (rtags-diagnostics)
+  (setq rtags-completions-enabled t)
+  (push 'company-rtags company-backends))
 (global-company-mode)
 
 

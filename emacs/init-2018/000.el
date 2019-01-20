@@ -15,12 +15,18 @@
 ; (require 'y-hs)
 
 ;; For rtags, *.el files should match rtags version.
-(let* ((rdm-version-full (shell-command-to-string "rc --version"))
-       (components (split-string rdm-version-full "\\." nil "[[:space:]]*"))
-       (major (car components))
-       (minor (car (cdr components)))
-       (package-name (concat "rtags-" major "." minor)))
-  (add-to-list 'load-path (concat my-emacs-init-dir "/third_party/" package-name)))
+(setq my-init/rtags/installed-p t)
+(with-temp-buffer
+  (condition-case nil
+      (call-process "rc" nil t nil "--version")
+    (error (setq my-init/rtags/installed-p nil)))
+  (when my-init/rtags/installed-p
+    (let* ((rdm-version-full (buffer-string))
+           (components (split-string rdm-version-full "\\." nil "[[:space:]]*"))
+           (major (car components))
+           (minor (car (cdr components)))
+           (package-name (concat "rtags-" major "." minor)))
+      (add-to-list 'load-path (concat my-emacs-init-dir "/third_party/" package-name)))))
 
 (defvar my-emacs-init-files
   (list
