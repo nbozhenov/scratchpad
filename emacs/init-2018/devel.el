@@ -53,3 +53,12 @@
 ;;
 
 (add-to-list 'auto-mode-alist '("\\.m\\'" . octave-mode))
+
+;;
+;; Bash
+;;
+
+(use-package sh-script
+  :defer
+  :config
+  (setq sh-basic-offset 2))
