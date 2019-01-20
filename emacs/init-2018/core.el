@@ -80,4 +80,17 @@
 (custom-set-variables '(fill-column 80))
 
 ; xclip
-(xclip-mode (if (getenv "SSH_CONNECTION") 1 0))
+(use-package xclip
+  :bind
+  (:map global-map
+        ("\C-cc" . (lambda (beg end)
+                     (interactive "r")
+                     (deactivate-mark)
+                     (let ((text (buffer-substring beg end)))
+                       (xclip-set-selection 'clipboard text))))
+        ("\C-cv" . (lambda ()
+                     (interactive)
+                     (insert (xclip-get-selection 'clipboard)))))
+  :config
+  (which-key-add-key-based-replacements "\C-cc" "X-copy")
+  (which-key-add-key-based-replacements "\C-cv" "X-paste"))
