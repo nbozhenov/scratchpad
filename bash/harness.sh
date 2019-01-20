@@ -2,6 +2,11 @@
 #  env abspath "$@"
 #}
 
+echodo() {
+  echo + "$@"
+  "$@"
+}
+
 fail() {
   echo "ERROR:${1}: ${2}" >&2
   exit 1

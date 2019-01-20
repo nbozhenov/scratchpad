@@ -290,38 +290,52 @@ git-mark-fork () {
 # for docear.sh
 # export _JAVA_OPTIONS='-Dawt.useSystemAAFontSettings=on'
 
-git-all-repos () {
-    local local_roots=
-    IFS=":" read -a local_roots <<< "$LOCAL_GIT_MIRRORS"
-    for root in "${local_roots[@]}"; do
-        for gitdir in `find "$root" -maxdepth 2 -type d -name .git -exec printf "%q\n" {} \;`; do
-            local repo="$(dirname "$gitdir")"
-            echo "$repo"
-        done
-    done
+git-local-list--impl () {
+  local local_roots=
+  IFS=":" read -a local_roots <<< "$GIT_LOCAL_SPACE"
+
+  # Let command line option override $GIT_LOCAL_SPACE
+  if [ $# -gt 0 ]; then
+    local_roots=( "$@" )
+  fi
+
+  for root in "${local_roots[@]}"; do
+    find "$root" -maxdepth 2 -type d -name .git -print0 | xargs -n1 -0 dirname --zero
+  done
 }
 
-git-dirty-repos () {
-    local local_roots=
-    IFS=":" read -a local_roots <<< "$LOCAL_GIT_MIRRORS"
+git-local-list () {
+  git-local-list--impl "$@" | while IFS= read -r -d '' repo; do
+    echo "$repo"
+  done
+}
 
-    # Let command line option override $LOCAL_GIT_MIRRORS
-    if [ $# -gt 0 ]; then
-        local_roots=( "$@" )
+git-local-sync () {
+  git-local-list--impl "$@" | while IFS= read -r -d '' repo; do
+    (echodo cd "$repo" && echodo git pull --rebase)
+    echo
+  done
+}
+
+git-local-status () {
+  git-local-list--impl "$@" | while IFS= read -r -d '' repo; do
+    (echodo cd "$repo" && echodo git status)
+    echo
+  done
+}
+
+git-local-dirty () {
+  git-local-list--impl "$@" | while IFS= read -r -d '' repo; do
+    local repostatus=$(cd "$repo" && git status)
+    if ! echo "$repostatus" | grep -q "working tree clean"; then
+      echo "$repo"
+      continue
     fi
-
-    for root in "${local_roots[@]}"; do
-        for gitdir in `find "$root" -maxdepth 2 -type d -name .git -exec printf "%q\n" {} \;`; do
-            local repo="$(dirname "$gitdir")"
-            local repostatus=$(cd "$repo" && git status)
-            if ! echo "$repostatus" | grep -q "working tree clean"; then
-                echo "$repo"
-                continue
-            fi
-            if ! echo "$repostatus" | grep -q "Your branch is up-to-date"; then
-                echo "$repo"
-                continue
-            fi
-        done
-    done
+    # Different git versions use slightly different spelling: 'up to date' or
+    # 'up-to-date'. We handle both.
+    if ! echo "$repostatus" | grep -q "Your branch is up.to.date"; then
+      echo "$repo"
+      continue
+    fi
+  done
 }
