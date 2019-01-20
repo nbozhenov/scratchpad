@@ -159,13 +159,17 @@ function y-gen-ps1 {
 }
 
 function y-timer-start {
-    y_timer_internal=${y_timer_internal:-"$(date +%s.%N)"}
+  y_timer_internal=${y_timer_internal:-"$(date +%s.%N)"}
 
+  # Update DISPLAY variable in tmux after establishing a new SSH connection.
+  # FIXME: this doesn't work if $HOME is shared between several hosts.
+  if [ -v SSH_CONNECTION ]; then
     if [ -z "$STY" -a -z "$TMUX" ]; then
       echo -n $DISPLAY > ~/.display.txt
     else
       export DISPLAY=`cat ~/.display.txt`
     fi
+  fi
 }
 
 function y-timer-stop {
