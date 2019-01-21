@@ -1,6 +1,8 @@
 [user]
 	email = Nikolai.Bozhenov@gmail.com
 	name = Nikolai Bozhenov
+[push]
+	default = simple
 [pull]
 	rebase = true
 [merge]
