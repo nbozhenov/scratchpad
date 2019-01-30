@@ -291,9 +291,9 @@ git-mark-fork () {
 }
 
 
-# for docear.sh
-# export _JAVA_OPTIONS='-Dawt.useSystemAAFontSettings=on'
-
+# This function is supposed to be used in process substitution, so it's exit
+# code may be inaccessible. So, this function prints exit code explicitely to
+# stdout (without a delimiter) after emitting all the paths.
 git-local-list--impl () {
   local local_roots=
   IFS=":" read -a local_roots <<< "$GIT_LOCAL_SPACE"
@@ -303,43 +303,81 @@ git-local-list--impl () {
     local_roots=( "$@" )
   fi
 
+  if [ ${#local_roots[@]} -eq 0 ]; then
+    echo "error: no local git repositories found" >&2
+    echo -n 1 # exit code
+    return 1
+  fi
+
   for root in "${local_roots[@]}"; do
     find "$root" -maxdepth 2 -type d -name .git -print0 | xargs -n1 -0 dirname --zero
   done
+
+  echo -n 0 # exit code
+  return 0
 }
 
 git-local-list () {
-  git-local-list--impl "$@" | while IFS= read -r -d '' repo; do
+  local ec=0
+  local ret=0
+
+  while IFS= read -r -d '' repo || { ec="$repo" && break; }; do
     echo "$repo"
-  done
+  done < <(git-local-list--impl "$@")
+
+  test "$ec" = "0" || ret=1
+  return $ret
 }
 
 git-local-sync () {
-  git-local-list--impl "$@" | while IFS= read -r -d '' repo; do
+  local ec=0
+  local ret=0
+
+  while IFS= read -r -d '' repo || { ec="$repo" && break; }; do
     (echodo cd "$repo" && echodo git pull --rebase)
+    test $? -eq 0 || ret=1
     echo
-  done
+  done < <(git-local-list--impl "$@")
+
+  test "$ec" = "0" || ret=1
+  return $ret
 }
 
 git-local-status () {
-  git-local-list--impl "$@" | while IFS= read -r -d '' repo; do
+  local ec=0
+  local ret=0
+
+  while IFS= read -r -d '' repo || { ec="$repo" && break; }; do
     (echodo cd "$repo" && echodo git status)
+    test $? -eq 0 || ret=1
     echo
-  done
+  done < <(git-local-list--impl "$@")
+
+  test "$ec" = "0" || ret=1
+  return $ret
 }
 
 git-local-dirty () {
-  git-local-list--impl "$@" | while IFS= read -r -d '' repo; do
+  local ec=0
+  local ret=0
+
+  while IFS= read -r -d '' repo || { ec="$repo" && break; }; do
     local repostatus=$(cd "$repo" && git status)
+    test $? -eq 0 || ret=1
+
     if ! echo "$repostatus" | grep -q "working tree clean"; then
       echo "$repo"
       continue
     fi
+
     # Different git versions use slightly different spelling: 'up to date' or
     # 'up-to-date'. We handle both.
     if ! echo "$repostatus" | grep -q "Your branch is up.to.date"; then
       echo "$repo"
       continue
     fi
-  done
+  done < <(git-local-list--impl "$@")
+
+  test "$ec" = "0" || ret=1
+  return $ret
 }
