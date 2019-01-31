@@ -73,7 +73,7 @@
 ;;
 (when on-windows-p
   (setq dired-free-space-program nil)
-  (magit-auto-revert-mode 0)
+  ; (magit-auto-revert-mode 0)
   (global-magit-file-mode 0))
 
 ;;
