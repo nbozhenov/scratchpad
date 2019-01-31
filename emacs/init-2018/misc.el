@@ -20,6 +20,18 @@
          ("C-i" . 'profiler-report-expand-entry)))
 
 ;;
+;; Switching languages (input methods).
+;;
+(global-set-key (kbd "C-9")
+                (lambda ()
+                  (interactive)
+                  (set-input-method nil (called-interactively-p))))
+(global-set-key (kbd "C-0")
+                (lambda ()
+                  (interactive)
+                  (set-input-method "russian-computer" (called-interactively-p))))
+
+;;
 ;; Spell checking
 ;;
 (use-package ispell
