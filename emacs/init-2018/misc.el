@@ -88,12 +88,20 @@
   (blink-cursor-mode 0)
   (add-to-list 'default-frame-alist '(fullscreen . maximized))
 
-  ;; An oversimplified adjustment to display sizes.
-  (setq my-display-type (if (> (x-display-pixel-height) 1200) '4k 'full-hd))
-  (let ((my-font (cond ((eq my-display-type '4k) "Input-11")
-                       ((eq my-display-type 'full-hd) "Input-9")
-                       (t (error "Unknown display type")))))
-    ;; These are two nice options for font selection.
-    ;; (add-to-list 'default-frame-alist '(font . "DejaVu Sans Mono-9.5"))
-    ;; DejaVu Sans Mono-9 looks bad for special characters and when bold.
-    (add-to-list 'default-frame-alist (cons 'font my-font))))
+  ; Setup fonts.
+  (let* ((hostname (shell-command-to-string "hostname"))
+         (host-id (cond ((string= hostname "hive\n") :hive)
+                        ((string= hostname "nbozheno-MOBL\n")
+                         (if on-windows-p :mobl-cyg :mobl-wsl))
+                        (t nil)))
+         (disp-type (if (> (x-display-pixel-height) 1500) :4k :full-hd))
+         (my-font (cond ((eq host-id :hive) "Input-11")
+                        ((eq host-id :mobl-cyg) "Input-9")
+                        ((eq host-id :mobl-wsl) "Input-11")
+                        ;; Use more widespread fonst on unnamed machines.
+                        ((eq disp-type :4k) "DejaVu Sans Mono-11")
+                        ((eq disp-type :full-hd) "DejaVu Sans Mono-9")
+                        ((eq host-id nil) nil)
+                        (t (error "Unknown host-id")))))
+    (when my-font
+      (add-to-list 'default-frame-alist (cons 'font my-font)))))
