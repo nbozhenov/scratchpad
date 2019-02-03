@@ -81,16 +81,19 @@
 
 ; xclip
 (use-package xclip
+  :if (getenv "SSH_CONNECTION")
   :bind
   (:map global-map
-        ("\C-cc" . (lambda (beg end)
-                     (interactive "r")
-                     (deactivate-mark)
-                     (let ((text (buffer-substring beg end)))
-                       (xclip-set-selection 'clipboard text))))
-        ("\C-cv" . (lambda ()
-                     (interactive)
-                     (insert (xclip-get-selection 'clipboard)))))
+        ("\C-cxc" . (lambda (beg end)
+                      (interactive "r")
+                      (deactivate-mark)
+                      (let ((text (buffer-substring beg end)))
+                        (xclip-set-selection 'clipboard text))))
+        ("\C-cxv" . (lambda ()
+                      (interactive)
+                      (insert (xclip-get-selection 'clipboard)))))
   :config
-  (which-key-add-key-based-replacements "\C-cc" "X-copy")
-  (which-key-add-key-based-replacements "\C-cv" "X-paste"))
+  (require 'which-key)
+  (which-key-add-key-based-replacements (kbd "C-c x") "X11")
+  (which-key-add-key-based-replacements (kbd "C-c x c") "X-copy")
+  (which-key-add-key-based-replacements (kbd "C-c x v") "X-paste"))
