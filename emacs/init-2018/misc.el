@@ -7,6 +7,18 @@
 (add-hook 'org-agenda-mode-hook 'hl-line-mode)
 
 ;;
+;; highlight trailing whitespaces and indicate empty lines
+;;
+(setq-default show-trailing-whitespace t)
+(setq-default indicate-empty-lines t)
+;; Ignore trailing spaces in certain modes.
+(dolist (mode-hook '(comint-mode-hook
+                     Info-mode-hook
+                     tabulated-list-mode-hook ; replace with special-mode-hook?
+                     ))
+  (add-hook mode-hook (lambda () (setq show-trailing-whitespace nil))))
+
+;;
 ;; auto-fill-mode
 ;;
 (add-hook 'text-mode-hook #'turn-on-auto-fill)
