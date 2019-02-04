@@ -14,7 +14,7 @@
 ;; Ignore trailing spaces in certain modes.
 (dolist (mode-hook '(comint-mode-hook
                      Info-mode-hook
-                     tabulated-list-mode-hook ; replace with special-mode-hook?
+                     special-mode-hook
                      ))
   (add-hook mode-hook (lambda () (setq show-trailing-whitespace nil))))
 
