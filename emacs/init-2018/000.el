@@ -36,6 +36,7 @@
    "helm"
    "misc"
    "org"
+   "mypim"
    ))
 
 (dolist (config-file my-emacs-init-files)
