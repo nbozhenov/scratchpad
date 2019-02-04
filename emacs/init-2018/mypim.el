@@ -5,7 +5,14 @@
           (abbr (nth 1 proj))  ; project abbreviation
           (sdir (nth 2 proj))  ; project base directory
           (pdir (nth 3 proj))) ; project publishing directory
+      (my-pim/setup-capture name abbr sdir)
       (my-pim/setup-publish name sdir pdir))))
+
+
+(defun my-pim/setup-capture (name abbr sdir)
+  (let ((new-entry `(,abbr ,name entry (file ,(concat sdir "/Inbox.todo"))
+                           "* TODO %?\n  %i\n" :empty-lines 1 :prepend t)))
+    (setq org-capture-templates (cons new-entry org-capture-templates))))
 
 
 (defun my-pim/setup-publish (name sdir pdir)
