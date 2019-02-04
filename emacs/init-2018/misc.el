@@ -34,14 +34,22 @@
 ;;
 ;; Switching languages (input methods).
 ;;
-(global-set-key (kbd "C-9")
-                (lambda ()
-                  (interactive)
-                  (set-input-method nil (called-interactively-p))))
-(global-set-key (kbd "C-0")
-                (lambda ()
-                  (interactive)
-                  (set-input-method "russian-computer" (called-interactively-p))))
+(if (eq (window-system) 'w32)
+    ; For some reason emacs-w32 with russian-computer (and other) input methods
+    ; mishandles ',' and '?' keys. So, switching input methods on w32 is
+    ; temporarily disabled.
+    (progn
+      (global-set-key (kbd "C-9") (lambda () (interactive)))
+      (global-set-key (kbd "C-0") (lambda () (interactive))))
+  (progn
+    (global-set-key (kbd "C-9")
+                    (lambda ()
+                      (interactive)
+                      (set-input-method nil (called-interactively-p))))
+    (global-set-key (kbd "C-0")
+                    (lambda ()
+                      (interactive)
+                      (set-input-method "russian-computer" (called-interactively-p))))))
 
 ;;
 ;; Spell checking
