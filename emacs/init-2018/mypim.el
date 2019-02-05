@@ -1,8 +1,10 @@
 (require 'org)
 
 (defun my-pim/local-projects (project-list)
-  (setq org-publish-project-alist nil)
   (my-init/org-capture/pkg-config)
+  (my-init/org-agenda/setup-gtd)
+  (setq org-publish-project-alist nil)
+
   (let (curr-group-abbr)
     (dolist (proj project-list)
       (cond
@@ -11,7 +13,8 @@
         (let ((group-name (nth 1 proj))
               (group-abbr (nth 2 proj)))
           (setq curr-group-abbr group-abbr)
-          (my-pim/setup-capture-startgroup group-name group-abbr)))
+          (my-pim/setup-capture-startgroup group-name group-abbr)
+          (my-pim/setup-agenda-startgroup group-name group-abbr)))
        ; endgroup
        ((eq (car proj) :endgroup)
         (setq curr-group-abbr nil))
@@ -21,8 +24,10 @@
               (abbr (nth 1 proj))  ; project abbreviation
               (sdir (nth 2 proj))  ; project base directory
               (pdir (nth 3 proj))) ; project publishing directory
-          (my-pim/setup-capture name (concat curr-group-abbr abbr) sdir)
-          (my-pim/setup-publish name sdir pdir)))))))
+          (when (file-exists-p sdir)
+            (my-pim/setup-capture name (concat curr-group-abbr abbr) sdir)
+            (my-pim/setup-agenda name (concat curr-group-abbr abbr) sdir)
+            (my-pim/setup-publish name sdir pdir))))))))
 
 
 (defun my-pim/setup-capture (name abbr sdir)
@@ -37,6 +42,22 @@
   ;; However, reversing this list would also reverse the original
   ;; org-capture-templates value (if any), which is undesirable.
   (setq org-capture-templates (cons (list abbr name) org-capture-templates)))
+
+
+(defun my-pim/setup-agenda (name abbr sdir)
+  (let* ((agenda-files
+          (directory-files-recursively sdir "\\.\\(todo\\|org\\)\\'"))
+         (custom
+          `(,abbr ,name todo "TODO|WAIT"
+                  ((org-agenda-overriding-header ,(concat name ": Backlog"))
+                   (org-agenda-files (quote ,agenda-files))))))
+    (setq org-agenda-custom-commands
+          (cons custom org-agenda-custom-commands))))
+
+
+(defun my-pim/setup-agenda-startgroup (name abbr)
+  (setq org-agenda-custom-commands
+        (cons (cons abbr name) org-agenda-custom-commands)))
 
 
 (defun my-pim/setup-publish (name sdir pdir)
