@@ -1,18 +1,42 @@
+(require 'org)
+
 (defun my-pim/local-projects (project-list)
   (setq org-publish-project-alist nil)
-  (dolist (proj project-list)
-    (let ((name (nth 0 proj))  ; project name
-          (abbr (nth 1 proj))  ; project abbreviation
-          (sdir (nth 2 proj))  ; project base directory
-          (pdir (nth 3 proj))) ; project publishing directory
-      (my-pim/setup-capture name abbr sdir)
-      (my-pim/setup-publish name sdir pdir))))
+  (my-init/org-capture/pkg-config)
+  (let (curr-group-abbr)
+    (dolist (proj project-list)
+      (cond
+       ; startgroup
+       ((eq (car proj) :startgroup)
+        (let ((group-name (nth 1 proj))
+              (group-abbr (nth 2 proj)))
+          (setq curr-group-abbr group-abbr)
+          (my-pim/setup-capture-startgroup group-name group-abbr)))
+       ; endgroup
+       ((eq (car proj) :endgroup)
+        (setq curr-group-abbr nil))
+       ; project description
+       (t
+        (let ((name (nth 0 proj))  ; project name
+              (abbr (nth 1 proj))  ; project abbreviation
+              (sdir (nth 2 proj))  ; project base directory
+              (pdir (nth 3 proj))) ; project publishing directory
+          (my-pim/setup-capture name (concat curr-group-abbr abbr) sdir)
+          (my-pim/setup-publish name sdir pdir)))))))
 
 
 (defun my-pim/setup-capture (name abbr sdir)
   (let ((new-entry `(,abbr ,name entry (file ,(concat sdir "/Inbox.todo"))
                            "* TODO %?\n  %i\n" :empty-lines 1 :prepend t)))
     (setq org-capture-templates (cons new-entry org-capture-templates))))
+
+
+(defun my-pim/setup-capture-startgroup (name abbr)
+  ;; FIXME: According to documentation, startgroup should precede group
+  ;; elements, but in my implementation the list gets actually reversed.
+  ;; However, reversing this list would also reverse the original
+  ;; org-capture-templates value (if any), which is undesirable.
+  (setq org-capture-templates (cons (list abbr name) org-capture-templates)))
 
 
 (defun my-pim/setup-publish (name sdir pdir)

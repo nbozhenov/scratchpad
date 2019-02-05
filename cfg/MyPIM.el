@@ -1,2 +1,4 @@
 (my-pim/local-projects
- '(("Emacs" "e" "~/z/Emacs/doc" "~/p/Emacs")))
+ '((:startgroup "ZZZ" "z")
+   ("z/Emacs" "e" "~/z/Emacs/doc" "~/p/Emacs")
+   (:endgroup)))

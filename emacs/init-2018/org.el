@@ -97,20 +97,12 @@
 
 (defun my-init/org-agenda/pkg-config ()
   (my-org-agenda-files-refresh)
-
-  ;; basic config
   (setq org-agenda-todo-ignore-scheduled nil)
   (setq org-agenda-skip-scheduled-if-done t)
   (setq org-agenda-start-on-weekday nil)
   (setq org-agenda-restore-windows-after-quit t)
   (setq org-agenda-window-setup 'current-window)
   (setq org-agenda-span 14)
-
-  ;; org-capture
-  (setq org-capture-templates
-        '(("t" "Incoming [T]asks" entry (file org-default-notes-file)
-           "* TODO %?\n  %i\n" :empty-lines 1 :prepend t)))
-  (setq org-reverse-note-order t)
 ) ; my-init/org-agenda/pkg-config
 
 
@@ -314,7 +306,7 @@
 
 
 (use-package org-agenda
-  :if (getenv "ORG_AGENDA_PATH")
+  :after org
   :bind (("C-c c" . 'org-capture)
          ("C-c a" . 'org-agenda)
          :map org-agenda-mode-map
@@ -325,6 +317,18 @@
   (my-init/org-agenda/pkg-config)
   (my-init/org-agenda/setup-calendar)
   (my-init/org-agenda/setup-gtd))
+
+
+(defun my-init/org-capture/pkg-config ()
+  (setq org-capture-templates
+        '(("t" "Incoming [T]asks" entry (file org-default-notes-file)
+           "* TODO %?\n  %i\n" :empty-lines 1 :prepend t)))
+  (setq org-reverse-note-order t))
+
+
+(use-package org-capture
+  :after org-agenda
+  :config (my-init/org-capture/pkg-config))
 
 
 (use-package org-inlinetask
