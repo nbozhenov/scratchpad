@@ -14,6 +14,7 @@
 ;; Ignore trailing spaces in certain modes.
 (dolist (mode-hook '(comint-mode-hook
                      Info-mode-hook
+                     magit-popup-mode
                      special-mode-hook
                      ))
   (add-hook mode-hook (lambda () (setq show-trailing-whitespace nil))))
