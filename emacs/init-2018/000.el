@@ -11,6 +11,9 @@
 (defvar my-emacs-dir "~/z/scratchpad/emacs")
 (defvar my-emacs-init-dir (concat my-emacs-dir "/init-2018"))
 
+; Some configurations needs to be done differently on different machines.
+(defvar my-hostname (shell-command-to-string "hostname"))
+
 ; (add-to-list 'load-path (concat my-emacs-dir "/elib"))
 ; (require 'y-hs)
 

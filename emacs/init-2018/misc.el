@@ -110,9 +110,8 @@
   (add-to-list 'default-frame-alist '(fullscreen . maximized))
 
   ; Setup fonts.
-  (let* ((hostname (shell-command-to-string "hostname"))
-         (host-id (cond ((string= hostname "hive\n") :hive)
-                        ((string= hostname "nbozheno-MOBL\n")
+  (let* ((host-id (cond ((string= my-hostname "hive\n") :hive)
+                        ((string= my-hostname "nbozheno-MOBL\n")
                          (if on-windows-p :mobl-cyg :mobl-wsl))
                         (t nil)))
          (disp-type (if (> (x-display-pixel-height) 1500) :4k :full-hd))

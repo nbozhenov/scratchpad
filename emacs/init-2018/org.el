@@ -64,10 +64,8 @@
       (setcar elt "unicode")))
 
   ;; Inline images
-  (let ((my-scale (cond ((eq my-display-type '4k) 158)
-                        ((eq my-display-type 'full-hd) 96)
-                        (t (error "Unknown display type")))))
-    (setq org-image-actual-width (list (* 4 my-scale))))
+  (let ((scale (if (eq my-hostname "hive") 158 96)))
+    (setq org-image-actual-width (list (* 4 scale))))
 
 ) ; my-init/org/pkg-config
 
