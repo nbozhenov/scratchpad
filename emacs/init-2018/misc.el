@@ -59,6 +59,8 @@
   :defer t
   :config
   (setq ispell-program-name "hunspell"
+        ; I used hunspell-merge java application to merge two dictionary into
+        ; my_enru. See yandex.disk for binary files.
         ispell-dictionary "my_enru"
         ispell-local-dictionary-alist '(("my_enru" "[[:alnum:]]" "[^[:alnum:]]"
                                          "[-']" t ("-d" "my_enru") nil utf-8))))
