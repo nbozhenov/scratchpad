@@ -40,7 +40,6 @@
 ;;
 ;; company-mode
 ;;
-
 (when my-init/rtags/installed-p
   (setq rtags-autostart-diagnostics t)
   (rtags-diagnostics)
@@ -50,15 +49,24 @@
 
 
 ;;
+;; flycheck-mode
+;;
+(add-hook 'c-mode-common-hook
+          (lambda ()
+            (flycheck-mode 1)
+            (flycheck-select-checker 'rtags)
+            (setq-local flycheck-check-syntax-automatically '(save))))
+
+
+;;
 ;; Octave
 ;;
-
 (add-to-list 'auto-mode-alist '("\\.m\\'" . octave-mode))
+
 
 ;;
 ;; Bash
 ;;
-
 (use-package sh-script
   :defer
   :config
