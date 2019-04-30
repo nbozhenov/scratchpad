@@ -50,27 +50,3 @@
   (set-face-attribute 'default nil :font "DejaVu Sans Mono-10"))
 
 (setq default-frame-alist '((font . "DejaVu Sans Mono-10")))
-
-;;;;
-;; Encoding
-;;
-(modify-coding-system-alist 'file "/home/bozhenov_n/work/" 'koi8-r)
-(modify-coding-system-alist 'file "/home/bozhenov_n/work/notes.ecomp" 'utf-8)
-
-(defun y-setup-coding-systems ()
-  (set-keyboard-coding-system 'koi8-r)
-  (set-terminal-coding-system 'koi8-r))
-
-(add-hook 'terminal-init-xterm-hook 'y-setup-coding-systems)
-
-;;;;
-;; Tags
-;;
-(defun load-ecomp-tags ()
-  "Load TAGS pertaining to ecomp development"
-  (interactive)
-  (setq tags-table-list
-        '("/home/bozhenov_n/work/ecomp/TAGS"))
-  (setq tags-file-name nil))
-
-(load-ecomp-tags)

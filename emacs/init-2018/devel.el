@@ -6,11 +6,29 @@
 
 
 ;;
+;; GCC
+;;
+(add-hook
+ 'c++-mode-hook
+ (lambda ()
+   (when (string-match "/gcc/" (or buffer-file-name ""))
+     (setq indent-tabs-mode t)
+     (c-set-style "gnu" nil))))
+
+;; open all gcc sources in c++-mode
+(add-to-list 'auto-mode-alist '("gcc.*\\.c\\'" . c++-mode))
+;; open machine description files in lisp-mode
+(add-to-list 'auto-mode-alist '("gcc.*\\.md\\'" . lisp-mode))
+
+
+;;
 ;; C/C++
 ;;
 
 ;; c-show-syntactic-information may be usefult to create my own style.
 ;; As well as example in third_party/llvm/emacs/emacs.el.
+;; You can determine which offset to edit by hitting C-c C-s on any line.
+;; C-c C-o runs the command c-set-offset
 (setq c-default-style "llvm.org")
 
 ;; Shift preprocessor directives to the left.
@@ -71,3 +89,11 @@
   :defer
   :config
   (setq sh-basic-offset 2))
+
+
+;;
+;; Diff
+;;
+
+;; No pop-up window for ediff
+(setq ediff-window-setup-function 'ediff-setup-windows-plain)

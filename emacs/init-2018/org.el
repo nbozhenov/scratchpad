@@ -72,7 +72,8 @@
 
 (use-package org
   :mode (("\\.todo$" . org-mode))
-  :config (my-init/org/pkg-config))
+  :config (my-init/org/pkg-config)
+  :hook (org-mode . turn-off-auto-fill))
 
 
 ;;

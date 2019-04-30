@@ -1,7 +1,7 @@
 ;;
 ;; BACKUP
 ;;
-(setq 
+(setq
     backup-directory-alist '(("." . "~/.emacs.d/backup")) ; Store backup files here
     backup-by-copying t    ; Don't delink hardlinks
     version-control t      ; Use version numbers on backups
@@ -59,9 +59,6 @@
 ;; see desciption of `sentence-end' function for the other parameters
 (setq sentence-end-double-space nil)
 
-; truncate long lines
-(setq truncate-lines t) ; works when auto-fill mode is turned off
-
 ;; Non-nil means find a file under alternative names, in existing buffers.
 ;; This means if any existing buffer is visiting the file you want
 ;; under another name, you get the existing buffer instead of a new buffer.
@@ -76,7 +73,7 @@
 (global-set-key "\C-x\C-b" 'buffer-menu)
 
 ; unbind set-fill-column (quite useless binding)
-(global-unset-key "\C-xf") 
+(global-unset-key "\C-xf")
 (custom-set-variables '(fill-column 80))
 
 ; xclip
