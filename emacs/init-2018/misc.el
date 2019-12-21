@@ -117,11 +117,11 @@
                          (if on-windows-p :mobl-cyg :mobl-wsl))
                         (t nil)))
          (disp-type (if (> (x-display-pixel-height) 1500) :4k :full-hd))
-         (my-font (cond ((eq host-id :hive) "Input-11")
+         (my-font (cond ((eq host-id :hive) "Input-10")
                         ((eq host-id :mobl-cyg) "Input-9")
                         ((eq host-id :mobl-wsl) "Input-11")
                         ;; Use more widespread fonst on unnamed machines.
-                        ((eq disp-type :4k) "DejaVu Sans Mono-11")
+                        ((eq disp-type :4k) "DejaVu Sans Mono-10")
                         ((eq disp-type :full-hd) "DejaVu Sans Mono-9")
                         ((eq host-id nil) nil)
                         (t (error "Unknown host-id")))))
