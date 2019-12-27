@@ -94,7 +94,7 @@
 ;;
 ;; Hacks for windows
 ;;
-(when on-windows-p
+(when my-on-windows-p
   (setq dired-free-space-program nil)
   ; (magit-auto-revert-mode 0)
   (global-magit-file-mode 0))
@@ -114,7 +114,7 @@
   ; Setup fonts.
   (let* ((host-id (cond ((string= my-hostname "hive\n") :hive)
                         ((string= my-hostname "nbozheno-MOBL\n")
-                         (if on-windows-p :mobl-cyg :mobl-wsl))
+                         (if my-on-windows-p :mobl-cyg :mobl-wsl))
                         (t nil)))
          (disp-type (if (> (x-display-pixel-height) 1500) :4k :full-hd))
          (my-font (cond ((eq host-id :hive) "Input-10")
