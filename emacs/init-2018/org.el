@@ -305,6 +305,7 @@
 
 
 (use-package org-agenda
+  :ensure nil
   :after org
   :bind (("C-c c" . 'org-capture)
          ("C-c a" . 'org-agenda)
@@ -326,11 +327,13 @@
 
 
 (use-package org-capture
+  :ensure nil
   :after org-agenda
   :config (my-init/org-capture/pkg-config))
 
 
 (use-package org-inlinetask
+  :ensure nil
   :after org
   :config
   (setq org-inlinetask-min-level 8))
