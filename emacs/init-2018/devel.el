@@ -48,36 +48,46 @@
 ;; RTAGS
 ;;
 ;; For rtags, *.el files should match rtags version.
-(defvar my-init/rtags/installed-p t)
-(with-temp-buffer
-  (condition-case nil
-      (call-process "rc" nil t nil "--version")
-    (error (setq my-init/rtags/installed-p nil)))
-  (when my-init/rtags/installed-p
-    (let* ((rdm-version-full (buffer-string))
-           (components (split-string rdm-version-full "\\." nil "[[:space:]]*"))
-           (major (car components))
-           (minor (car (cdr components)))
-           (package-name (concat "rtags-" major "." minor)))
-      (add-to-list 'load-path (concat my-emacs-init-dir "/third_party/" package-name)))))
+(defvar my-init/rtags/installed-p nil)
+(defun my-init/rtags/setup-load-path ()
+  (setq my-init/rtags/installed-p t)
+  (with-temp-buffer
+    (condition-case nil
+        (call-process "rc" nil t nil "--version")
+      (error (setq my-init/rtags/installed-p nil)))
+    (when my-init/rtags/installed-p
+      (let* ((rdm-version-full (buffer-string))
+             (components (split-string rdm-version-full "\\." nil "[[:space:]]*"))
+             (major (car components))
+             (minor (car (cdr components)))
+             (package-name (concat "rtags-" major "." minor)))
+        (add-to-list 'load-path (concat my-emacs-init-dir "/third_party/"
+                                        package-name)))))
+  my-init/rtags/installed-p)
 
-(when my-init/rtags/installed-p
-  (require 'rtags)
+(use-package rtags
+  :ensure nil
+  :if (my-init/rtags/setup-load-path)
+  :after (c-mode)
+  :config
+  ; (require 'rtags)
   (require 'helm-rtags)
   (require 'company-rtags)
   (require 'flycheck-rtags)
-  (rtags-enable-standard-keybindings global-map))
+  (rtags-enable-standard-keybindings global-map)
+  (setq rtags-autostart-diagnostics t)
+  (rtags-diagnostics)
+  (setq rtags-completions-enabled t)
+  (push 'company-rtags company-backends)
+)
 
 
 ;;
 ;; company-mode
 ;;
-(when my-init/rtags/installed-p
-  (setq rtags-autostart-diagnostics t)
-  (rtags-diagnostics)
-  (setq rtags-completions-enabled t)
-  (push 'company-rtags company-backends))
-(global-company-mode)
+(use-package company
+  :config
+  (global-company-mode))
 
 
 ;;

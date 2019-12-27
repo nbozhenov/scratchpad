@@ -11,7 +11,7 @@
 ;;
 (setq-default indicate-empty-lines t)
 (dolist (mode-hook '(text-mode-hook prog-mode-hook))
-  (add-hook mode-hook (lambda () (setq show-trailing-whitespace t))))
+  (add-hook mode-hook (lambda () (setq-local show-trailing-whitespace t))))
 
 ;;
 ;; auto-fill-mode
