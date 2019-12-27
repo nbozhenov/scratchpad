@@ -79,6 +79,9 @@
 ; xclip
 (use-package xclip
   :if (getenv "SSH_CONNECTION")
+  :ensure t
+  :ensure which-key
+
   :bind
   (:map global-map
         ("\C-cxc" . (lambda (beg end)
@@ -89,6 +92,7 @@
         ("\C-cxv" . (lambda ()
                       (interactive)
                       (insert (xclip-get-selection 'clipboard)))))
+
   :config
   (require 'which-key)
   (which-key-add-key-based-replacements (kbd "C-c x") "X11")

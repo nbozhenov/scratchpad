@@ -24,6 +24,7 @@
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
   (package-install 'use-package))
+(setq use-package-always-ensure t)
 
 (defvar my-emacs-init-files
   (list
