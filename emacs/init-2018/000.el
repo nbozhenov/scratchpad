@@ -4,8 +4,6 @@
 ;; You may delete these explanatory comments.
 (package-initialize)
 
-;; MELPA archive.
-(add-to-list 'package-archives '("melpa" . "http://melpa.milkbox.net/packages/"))
 ;;
 ;; My configuration variables
 ;;
@@ -18,6 +16,8 @@
 (defvar my-hostname (shell-command-to-string "hostname"))
 (defvar my-on-windows-p (if (member system-type '(cygwin windows-nt)) t nil))
 
+;; Package archive.
+(add-to-list 'package-archives '("melpa-stable" . "http://stable.melpa.org/packages/"))
 
 ; Most packages are installed by 'use-package using :ensure keyword. However,
 ; the use-package itself needs to be installed manually.
