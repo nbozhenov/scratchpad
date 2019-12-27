@@ -9,15 +9,9 @@
 ;;
 ;; highlight trailing whitespaces and indicate empty lines
 ;;
-(setq-default show-trailing-whitespace t)
 (setq-default indicate-empty-lines t)
-;; Ignore trailing spaces in certain modes.
-(dolist (mode-hook '(comint-mode-hook
-                     Info-mode-hook
-                     magit-popup-mode
-                     special-mode-hook
-                     ))
-  (add-hook mode-hook (lambda () (setq show-trailing-whitespace nil))))
+(dolist (mode-hook '(text-mode-hook prog-mode-hook))
+  (add-hook mode-hook (lambda () (setq show-trailing-whitespace t))))
 
 ;;
 ;; auto-fill-mode
