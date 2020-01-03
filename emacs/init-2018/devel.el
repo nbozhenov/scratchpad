@@ -37,11 +37,20 @@
 ;; open all headers in c++-mode
 (add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
 
+(defvar my-init/cc-mode/initialized-p nil)
+(defun my-init/cc-mode/initialize ()
+  (require 'rtags)
+  (require 'helm-rtags)
+  (require 'company-rtags)
+  (require 'flycheck-rtags)
+  (define-key c-mode-base-map (kbd "\C-cf") 'clang-format)
+  (define-key c-mode-base-map (kbd "\C-c\C-c") 'comment-or-uncomment-region)
+  (setq my-init/cc-mode/initialized-p t))
+
 (add-hook 'c-mode-common-hook
           (lambda ()
-            (define-key c-mode-base-map (kbd "\C-cf") 'clang-format)
-            (define-key c-mode-base-map (kbd "\C-c\C-c") 'comment-or-uncomment-region)
-            ))
+            (unless my-init/cc-mode/initialized-p
+              (my-init/cc-mode/initialize))))
 
 
 ;;
@@ -66,14 +75,10 @@
   my-init/rtags/installed-p)
 
 (use-package rtags
-  :ensure nil
+  :defer ;; load when executing c-mode-common-hook (see below)
+  :ensure nil ;; use custom rtags.el that matches rc executable
   :if (my-init/rtags/setup-load-path)
-  :after (c-mode)
   :config
-  ; (require 'rtags)
-  (require 'helm-rtags)
-  (require 'company-rtags)
-  (require 'flycheck-rtags)
   (rtags-enable-standard-keybindings global-map)
   (setq rtags-autostart-diagnostics t)
   (rtags-diagnostics)
