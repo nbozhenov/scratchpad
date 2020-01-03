@@ -93,11 +93,15 @@
 ;;
 ;; flycheck-mode
 ;;
-(add-hook 'c-mode-common-hook
-          (lambda ()
-            (flycheck-mode 1)
-            (flycheck-select-checker 'rtags)
-            (setq-local flycheck-check-syntax-automatically '(save))))
+(use-package flycheck
+  :defer ; the package is loaded when cc-mode first used.
+  :config
+  (add-hook 'c-mode-common-hook
+            (lambda ()
+              (flycheck-mode 1)
+              ; (flycheck-select-checker 'rtags)
+              (setq-local flycheck-check-syntax-automatically '(save))))
+)
 
 
 ;;
