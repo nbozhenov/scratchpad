@@ -130,3 +130,48 @@
 
 ;; No pop-up window for ediff
 (setq ediff-window-setup-function 'ediff-setup-windows-plain)
+
+
+;;
+;; Realgud
+;;
+(defun my-init/realgud/bind-keys ()
+  (evil-collection-define-key 'normal 'realgud:shortkey-mode-map
+    "r"  nil  ; clear old binding
+    "rc" #'realgud:cmd-reverse-continue
+    "rf" #'realgud:cmd-reverse-finish
+    "rn" #'realgud:cmd-reverse-next
+    "rs" #'realgud:cmd-reverse-step))
+
+;; A few basic reverse-debugging command for realgud:gdb.
+;; No lambdas are used, so that which-key shows reasonable command names.
+(defun realgud:cmd-reverse-continue ()
+  (interactive "p")
+  (when (realgud:prompt-if-safe-mode "Continue to previous breakpoint?")
+    (realgud:cmd-run-command arg "reverse-continue")))
+
+(defun realgud:cmd-reverse-finish ()
+  (interactive) (realgud:cmd-run-command nil "reverse-finish"))
+
+(defun realgud:cmd-reverse-next (&optional arg)
+  (interactive "p") (realgud:cmd-run-command arg "reverse-next"))
+
+(defun realgud:cmd-reverse-step (&optional arg)
+  (interactive "p") (realgud:cmd-run-command arg "reverse-step"))
+
+(use-package realgud
+  :defer
+  :commands realgud:gdb ; load when realgud:gdb is invoked.
+
+  :config
+  ; Register new commands.
+  (setf (gethash "reverse-continue" realgud:gdb-command-hash) "reverse-continue")
+  (setf (gethash "reverse-finish"   realgud:gdb-command-hash) "reverse-finish")
+  (setf (gethash "reverse-next"     realgud:gdb-command-hash) "reverse-next %p")
+  (setf (gethash "reverse-step"     realgud:gdb-command-hash) "reverse-step %p")
+
+  ;; evil-collection-realgud-setup resets keybindings, so advice is used to make
+  ;; sure that our bindings override bindings from evil-collection.
+  (advice-add 'evil-collection-realgud-setup :after #'my-init/realgud/bind-keys)
+  (my-init/realgud/bind-keys)
+)
