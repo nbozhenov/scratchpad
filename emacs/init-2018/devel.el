@@ -6,6 +6,13 @@
 
 
 ;;
+;; clang-format
+;;
+(use-package clang-format
+  :commands clang-format)
+
+
+;;
 ;; GCC
 ;;
 (add-hook
@@ -43,8 +50,8 @@
   (require 'helm-rtags)
   (require 'company-rtags)
   (require 'flycheck-rtags)
-  (define-key c-mode-base-map (kbd "\C-cf") 'clang-format)
-  (define-key c-mode-base-map (kbd "\C-c\C-c") 'comment-or-uncomment-region)
+  (define-key c-mode-base-map (kbd "\C-cf") #'clang-format)
+  (define-key c-mode-base-map (kbd "\C-c\C-c") #'comment-or-uncomment-region)
   (setq my-init/cc-mode/initialized-p t))
 
 (add-hook 'c-mode-common-hook
