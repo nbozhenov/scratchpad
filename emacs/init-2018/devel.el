@@ -98,6 +98,7 @@
 ;; company-mode
 ;;
 (use-package company
+  :demand ;; we want company-mode enabled everytime.
   :config
   (global-company-mode))
 
