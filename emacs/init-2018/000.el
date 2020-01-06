@@ -17,7 +17,11 @@
 (defvar my-on-windows-p (if (member system-type '(cygwin windows-nt)) t nil))
 
 ;; Package archive.
-(add-to-list 'package-archives '("melpa-stable" . "http://stable.melpa.org/packages/"))
+(setq package-archives '(("gnu" . "https://elpa.gnu.org/packages/")
+                         ("melpa-stable" . "https://stable.melpa.org/packages/")
+                         ("melpa" . "https://melpa.org/packages/")))
+;; Prefer more stable versions of the packages.
+(setq package-archive-priorities '(("gnu" . 5) ("melpa-stable" . 3) ("melpa" . 1)))
 
 ; Most packages are installed by 'use-package using :ensure keyword. However,
 ; the use-package itself needs to be installed manually.
