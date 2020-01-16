@@ -329,7 +329,7 @@ git-local-list () {
   return $ret
 }
 
-git-local-sync () {
+git-local-pull () {
   local ec=0
   local ret=0
 
@@ -366,14 +366,18 @@ git-local-dirty () {
     test $? -eq 0 || ret=1
 
     if ! echo "$repostatus" | grep -q "working tree clean"; then
+      echo "--------------------------------"
       echo "$repo"
+      (cd "$repo" && git status && echo)
       continue
     fi
 
     # Different git versions use slightly different spelling: 'up to date' or
     # 'up-to-date'. We handle both.
     if ! echo "$repostatus" | grep -q "Your branch is up.to.date"; then
+      echo "--------------------------------"
       echo "$repo"
+      (cd "$repo" && git status && echo)
       continue
     fi
   done < <(git-local-list--impl "$@")
