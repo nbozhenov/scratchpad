@@ -1,4 +1,6 @@
 source ~/z/scratchpad/bash/harness.sh
+source ~/z/scratchpad/bash/streams.sh
+source ~/z/scratchpad/bash/git-local.sh
 
 #
 # Инфа по xterm control sequences
@@ -281,100 +283,4 @@ git-mark-fork () {
 
     name="${fork:0:8}"
     git tag "$name" "$fork"
-}
-
-
-# This function is supposed to be used in process substitution, so it's exit
-# code may be inaccessible. So, this function prints exit code explicitely to
-# stdout (without a delimiter) after emitting all the paths.
-git-local-list--impl () {
-  local local_roots=
-  IFS=":" read -a local_roots <<< "$GIT_LOCAL_SPACE"
-
-  # Let command line option override $GIT_LOCAL_SPACE
-  if [ $# -gt 0 ]; then
-    local_roots=( "$@" )
-  fi
-
-  if [ ${#local_roots[@]} -eq 0 ]; then
-    echo "error: no local git repositories found" >&2
-    echo -n 1 # exit code
-    return 1
-  fi
-
-  for root in "${local_roots[@]}"; do
-    find "$root" -maxdepth 2 -type d -name .git -print0 | xargs -n1 -0 dirname --zero
-  done
-
-  echo -n 0 # exit code
-  return 0
-}
-
-git-local-list () {
-  local ec=0
-  local ret=0
-
-  while IFS= read -r -d '' repo || { ec="$repo" && break; }; do
-    echo "$repo"
-  done < <(git-local-list--impl "$@")
-
-  test "$ec" = "0" || ret=1
-  return $ret
-}
-
-git-local-pull () {
-  local ec=0
-  local ret=0
-
-  while IFS= read -r -d '' repo || { ec="$repo" && break; }; do
-    (echodo cd "$repo" && echodo git pull --rebase)
-    test $? -eq 0 || ret=1
-    echo
-  done < <(git-local-list--impl "$@")
-
-  test "$ec" = "0" || ret=1
-  return $ret
-}
-
-git-local-status () {
-  local ec=0
-  local ret=0
-
-  while IFS= read -r -d '' repo || { ec="$repo" && break; }; do
-    (echodo cd "$repo" && echodo git status)
-    test $? -eq 0 || ret=1
-    echo
-  done < <(git-local-list--impl "$@")
-
-  test "$ec" = "0" || ret=1
-  return $ret
-}
-
-git-local-dirty () {
-  local ec=0
-  local ret=0
-
-  while IFS= read -r -d '' repo || { ec="$repo" && break; }; do
-    local repostatus=$(cd "$repo" && git status)
-    test $? -eq 0 || ret=1
-
-    if ! echo "$repostatus" | grep -q "working tree clean"; then
-      echo "--------------------------------"
-      echo "$repo"
-      (cd "$repo" && git status && echo)
-      continue
-    fi
-
-    # Different git versions use slightly different spelling: 'up to date' or
-    # 'up-to-date'. We handle both.
-    if ! echo "$repostatus" | grep -q "Your branch is up.to.date"; then
-      echo "--------------------------------"
-      echo "$repo"
-      (cd "$repo" && git status && echo)
-      continue
-    fi
-  done < <(git-local-list--impl "$@")
-
-  test "$ec" = "0" || ret=1
-  return $ret
 }
