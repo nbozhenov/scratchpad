@@ -1,33 +1,30 @@
-#abspath() {
-#  env abspath "$@"
-#}
-
 echodo() {
   echo + "$@"
   "$@"
 }
+export -f echodo
 
-fail() {
-  echo "ERROR:${1}: ${2}" >&2
-  exit 1
-}
+pipestatus() {
+  local status=(${PIPESTATUS[@]})
 
-y-join() {
-  local delim="$1"
-  local first=1
-  shift
-  for i in "$@"; do
-    if [ "$first" -eq 0 ]; then
-      echo -n "$delim"
-    fi
-    echo -n "$i"
-    first=0
+  if [ $# -ne 0 ]; then
+    echo "pipestatus doesn't take any arguments" >&2
+    return 255
+  fi
+
+  if [ ${#status[@]} -le 1 ]; then
+    echo "pipestatus must be invoked immediately after a pipe" >&2
+    return 255
+  fi
+
+  local total=0
+  for i in ${status[@]}; do
+    total=$(( total | i ))
   done
-}
 
-hl() {
-  grep --color=always -E "`y-join \| "$@" ''`"
+  return $total
 }
+export -f pipestatus
 
 swap() {
   local dir1=`dirname $(abspath "$1")`
@@ -35,32 +32,6 @@ swap() {
   ln -T "$1" "$tmpname"
   mv "$2" "$1"
   mv "$tmpname" "$2"
-}
-
-not () {
-  if "$@"; then
-    return 1
-  else
-    return 0
-  fi
-}
-
-#
-# example:
-# $ echo /etc /etc/fstab /home /nonexistent | x_filter "test -d placeholder"
-# /etc /home
-#
-x_filter () {
-    local elt=
-    xargs -n1 | while read elt; do
-        eval "${1//placeholder/$elt}" && echo $elt
-    done
-}
-
-x_merge () {
-    local len=${#1}
-    local len=$(( len + 1 ))
-    xargs -n1 -I param echo -n ${1}param | cut -c ${len}-
 }
 
 #
