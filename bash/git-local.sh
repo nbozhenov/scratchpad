@@ -1,3 +1,9 @@
+# TODO: It would be nice to enable requests like this:
+# $ git-local 'list | FILTER "clean {}" | FOREACH "pull {} && extended-status {}"'
+# That is, git-local would inject short-named commands into a subshell and
+# execute such nice-looking and flexible oneliners.
+
+
 # TODO: check for non-pushed branches (error) and stashes (warning).
 git-local--clean-p () {
   if [ $# -ne 1 ]; then
