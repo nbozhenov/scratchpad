@@ -50,7 +50,7 @@ git-local-list () {
     ECHO "$@"
   fi \
   | FOREACH "(test -d {} || (echo 'No such directory: {}' && false)) && ECHO {}" \
-  | FOREACH "find {} -mindepth 2 -maxdepth 2 -type d -name .git" \
+  | FOREACH "find -L {} -mindepth 2 -maxdepth 2 -type d -name .git" \
   | FOREACH "ECHO {//}"
   pipestatus
 }
