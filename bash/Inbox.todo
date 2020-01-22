@@ -1,0 +1,6 @@
+#+TAGS:
+#+CATEGORY: BASH
+
+* TODO check for non-pushed branches and stashes                  :git_local:
+check for non-pushed branches (error) and stashes (warning).
+the idea is to encourage pushing all changes to the server to avoid losing data.
