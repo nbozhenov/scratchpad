@@ -24,7 +24,7 @@
 # 1) git-local-* tools
 #
 # 2) Remove nonexistent PATH components:
-#    PATH="$(SPLIT : "$PATH" | FILTER "test -d {}" | JOIN : )"
+#    PATH="$(ECHO "$PATH" | tr : $'\n' | FILTER "test -d {}" | JOIN : )"
 #
 
 
@@ -46,7 +46,8 @@ FOREACH() {
   #     > 2 x 1
   #     > 4 x 3
   if [ $# -ne 1 ]; then
-    echo "FOREACH: incorrect invocation" >&2
+    echo "${FUNCNAME[0]}: incorrect invocation" >&2
+    echo "${FUNCNAME[0]} '$1' '$2' '$3' '$4' '$5'" >&2
     return 255
   fi
   parallel -n1 --tty "$1"
@@ -58,7 +59,8 @@ export -f FOREACH
 # When invoked with correct parameters, always exits with 0 exit code.
 FILTER() {
   if [ $# -ne 1 ]; then
-    echo "FILTER: incorrect invocation" >&2
+    echo "${FUNCNAME[0]}: incorrect invocation" >&2
+    echo "${FUNCNAME[0]} '$1' '$2' '$3' '$4' '$5'" >&2
     return 255
   fi
 
@@ -71,13 +73,15 @@ export -f FILTER
 JOIN() {
   # TODO: Support options.
   if [ $# -ne 1 ]; then
-    echo "JOIN: incorrect invocation" >&2
+    echo "${FUNCNAME[0]}: incorrect invocation" >&2
+    echo "${FUNCNAME[0]} '$1' '$2' '$3' '$4' '$5'" >&2
     return 255
   fi
 
   local delim="$1"
   if [ ${#delim} -ne 1 ]; then
-    echo "JOIN: incorrect invocation" >&2
+    echo "${FUNCNAME[0]}: incorrect invocation" >&2
+    echo "${FUNCNAME[0]} '$1' '$2' '$3' '$4' '$5'" >&2
     return 255
   fi
 

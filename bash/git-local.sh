@@ -4,7 +4,6 @@
 # execute such nice-looking and flexible oneliners.
 
 
-# TODO: check for non-pushed branches (error) and stashes (warning).
 git-local--clean-p () {
   if [ $# -ne 1 ]; then
     echo "Internal error (invalid ${FUNCNAME[0]} invocation)" >&2
