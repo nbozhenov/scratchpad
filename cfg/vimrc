@@ -85,3 +85,7 @@ set clipboard=unnamed
 
 colorscheme desert
 highlight Comment ctermfg=DarkGrey
+
+" Automatically change PWD according to the open file
+set autochdir
+
