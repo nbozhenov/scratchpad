@@ -1,0 +1,6 @@
+#!/usr/bin/bash
+set -o errexit
+set -o nounset
+
+win_path=$(cygpath -w "$@")
+exec explorer "$win_path"
