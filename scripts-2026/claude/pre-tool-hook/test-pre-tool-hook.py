@@ -4,13 +4,14 @@ import os
 import subprocess
 import sys
 
-sys.path.insert(0, os.path.dirname(__file__))
+_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, _DIR)
 from importlib import import_module
 hook = import_module("pre-tool-hook")
 ShellParser = hook.ShellParser
 SUBST = hook.SUBST
 
-HOOK_SCRIPT = "./pre-tool-hook.py"
+HOOK_SCRIPT = os.path.join(_DIR, "pre-tool-hook.py")
 S = SUBST  # short alias for test readability
 
 # ---- Parser unit tests ----
