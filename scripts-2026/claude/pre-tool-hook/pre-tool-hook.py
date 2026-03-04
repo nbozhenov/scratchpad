@@ -33,12 +33,13 @@ _OPERATORS = [
     ("&", "sep"),
     (">", "redir_out"),
     ("<", "redir_in"),
+    ("\n", "sep"),
 ]
 
 # Shell keywords — if any parsed command starts with one of these,
 # the whole input is rejected (returns None → "ask").
 _KEYWORDS = frozenset({
-    "for", "while", "until", "if", "then", "else", "elif", "fi",
+    "while", "until", "if", "then", "else", "elif", "fi",
     "do", "done", "case", "esac", "select", "function",
     "{", "}", "[[", "coproc", "time",
 })
@@ -92,8 +93,12 @@ class ShellParser:
     # Core: command list
     # ------------------------------------------------------------------
 
-    def _parse_command_list(self, end_char):
+    def _parse_command_list(self, end_char, end_words=None):
         """Parse commands until *end_char* (or EOF if None).
+
+        If *end_words* is provided (a set of strings), parsing also stops
+        when a word matching an end_word is encountered at the start of a
+        new command.
 
         Returns a flat list of commands, or None on error/unsupported.
         """
@@ -182,13 +187,26 @@ class ShellParser:
 
             # Otherwise: parse a word.
             start_pos = self.pos
-            word, has_subst = self._parse_word(commands, end_char=end_char)
+            word = self._parse_word(commands, end_char=end_char)
             if word is None:
                 return None
             if self.pos == start_pos:
                 # Nothing consumed — guard against infinite loops.
                 return None
-            current.append(SUBST if has_subst else word)
+
+            # Check for end_words (e.g. "done" for for-loops).
+            if end_words and not current and word in end_words:
+                break
+
+            # Detect for-loop: "for" as the first word of a command.
+            if word == "for" and not current:
+                result = self._parse_for_loop(commands)
+                if result is None:
+                    return None
+                commands.extend(result)
+                continue
+
+            current.append(word)
 
         else:
             # Ran off the end without finding end_char.
@@ -236,13 +254,13 @@ class ShellParser:
             return None
         if self.text[self.pos] == "$" and self._peek(1) == "(":
             return None
-        target, has_subst = self._parse_word()
+        target = self._parse_word()
         if target is None or target == "":
             return None
         # Reject if substitutions were found inside the target (e.g. in
         # double-quoted strings) or if _parse_word stopped at a substitution
         # boundary mid-word (e.g. file$(cmd) or file`cmd`).
-        if has_subst:
+        if target == SUBST:
             return None
         if self.pos < len(self.text):
             if self.text[self.pos] == "`":
@@ -250,6 +268,85 @@ class ShellParser:
             if self.text[self.pos] == "$" and self._peek(1) == "(":
                 return None
         return target
+
+    # ------------------------------------------------------------------
+    # For-loop parsing
+    # ------------------------------------------------------------------
+
+    def _parse_for_loop(self, commands):
+        """Parse a for-loop after 'for' has been consumed.
+
+        Expects: VAR in ITEM... ; do BODY ; done
+        Returns a list of body commands, or None on error.
+        Substitutions in the item list are added to *commands*.
+        """
+        # 1. Parse variable name — must be a simple identifier (raw chars).
+        self._skip_whitespace()
+        if self.pos >= len(self.text):
+            return None
+        var_start = self.pos
+        while self.pos < len(self.text) and (
+            self.text[self.pos].isalnum() or self.text[self.pos] == "_"
+        ):
+            self.pos += 1
+        if self.pos == var_start:
+            return None  # no identifier chars (e.g. starts with $, quote, etc.)
+        var = self.text[var_start:self.pos]
+        if not var.isidentifier():
+            return None  # var name has special chars, quotes, etc.
+
+        # 2. Expect 'in'.
+        self._skip_whitespace()
+        if self.pos >= len(self.text):
+            return None
+        in_word = self._parse_word()
+        if in_word != "in":
+            return None
+
+        # 3. Parse item list — words until a separator.
+        while True:
+            self._skip_whitespace()
+            if self.pos >= len(self.text):
+                return None
+
+            # A separator ends the item list.
+            _, cat = self._match_operator()
+            if cat == "sep":
+                break
+            if cat is not None:
+                return None  # non-separator operator in item list
+
+            start_pos = self.pos
+            word = self._parse_word(commands)
+            if word is None:
+                return None
+            if self.pos == start_pos:
+                return None
+            # Item — substitution inner commands are already in 'commands'
+            # via _parse_word. The item value itself is discarded.
+
+        # 3b. Consume 'do' keyword after separator.
+        self._skip_whitespace()
+        # Skip additional separators (e.g. "for f in a;\n do").
+        while True:
+            _, cat2 = self._match_operator()
+            if cat2 == "sep":
+                self._skip_whitespace()
+                continue
+            break
+        if self.pos >= len(self.text):
+            return None
+        start_pos = self.pos
+        word = self._parse_word()
+        if word != "do" or self.pos == start_pos:
+            return None
+
+        # 4. Parse body until 'done'.
+        body = self._parse_command_list(end_char=None, end_words={"done"})
+        if body is None:
+            return None
+
+        return body
 
     # ------------------------------------------------------------------
     # Word parsing
@@ -265,9 +362,8 @@ class ShellParser:
         If *end_char* is set (e.g. '`'), that character is treated as a
         word boundary rather than a substitution opener.
 
-        Returns (word_string, has_subst) where has_subst is True if the
-        word contains an embedded command substitution.  Returns (None, False)
-        on error, or ("", False) if nothing was consumed.
+        Returns the word string, SUBST if the word contains a command
+        substitution, "" if nothing was consumed, or None on error.
         """
         buf = []
         has_subst = False
@@ -285,19 +381,19 @@ class ShellParser:
             if c == "$":
                 if self._at_command_subst():
                     if self._peek(2) == "(":
-                        return None, False  # $(( arithmetic — unsupported
+                        return None  # $(( arithmetic — unsupported
                     # $(...) command substitution inline.
                     self.pos += 2  # skip $(
                     inner = self._parse_command_list(end_char=")")
                     if inner is None:
-                        return None, False
+                        return None
                     has_subst = True
                     if commands is not None:
                         commands.extend(inner)
                     continue
                 result = self._parse_dollar(buf)
                 if result is None:
-                    return None, False
+                    return None
                 continue
 
             # Backslash escape.
@@ -314,7 +410,7 @@ class ShellParser:
             if c == "'":
                 s = self._parse_single_quote()
                 if s is None:
-                    return None, False
+                    return None
                 buf.append(s)
                 continue
 
@@ -322,7 +418,7 @@ class ShellParser:
             if c == '"':
                 result = self._parse_double_quote()
                 if result is None:
-                    return None, False
+                    return None
                 content, inner_cmds = result
                 buf.append(content)
                 if inner_cmds:
@@ -339,7 +435,7 @@ class ShellParser:
                 self.pos += 1  # skip opening `
                 inner = self._parse_command_list(end_char="`")
                 if inner is None:
-                    return None, False
+                    return None
                 has_subst = True
                 if commands is not None:
                     commands.extend(inner)
@@ -353,7 +449,7 @@ class ShellParser:
             buf.append(c)
             self.pos += 1
 
-        return "".join(buf), has_subst
+        return SUBST if has_subst else "".join(buf)
 
     def _parse_dollar(self, buf):
         """Handle $ during word parsing (non-substitution cases only).
@@ -531,7 +627,7 @@ class ShellParser:
         return None
 
     def _skip_whitespace(self):
-        while self.pos < len(self.text) and self.text[self.pos] in (" ", "\t", "\n", "\r"):
+        while self.pos < len(self.text) and self.text[self.pos] in (" ", "\t", "\r"):
             self.pos += 1
 
     def _skip_comment(self):

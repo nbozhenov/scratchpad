@@ -153,9 +153,29 @@ PARSER_CASES = [
     ("echo $1", [["echo", "$1"]]),
 
     # --- unsupported: keywords ---
-    ("for f in a; do echo; done", None),
     ("while true; do echo; done", None),
     ("if true; then echo; fi", None),
+
+    # --- for loops ---
+    ("for f in a b c; do echo $f; done", [["echo", "$f"]]),
+    ("for f in a b; do echo $f && ls; done", [["echo", "$f"], ["ls"]]),
+    ("for f in a b; do echo $f; done && ls", [["echo", "$f"], ["ls"]]),
+    ("for f in a b; do echo $f; done | grep x", [["echo", "$f"], ["grep", "x"]]),
+    ("for f in $(ls); do echo $f; done", [["ls"], ["echo", "$f"]]),
+    ("for f in a; do rm $f; done", [["rm", "$f"]]),
+    ("for f in $(rm /); do echo $f; done", [["rm", "/"], ["echo", "$f"]]),
+    # Multiple commands in body separated by semicolons
+    ("for f in a b; do echo $f; ls $f; done", [["echo", "$f"], ["ls", "$f"]]),
+    # Multiple commands in body separated by newlines
+    ("for f in a b; do\necho $f\nls $f\ndone", [["echo", "$f"], ["ls", "$f"]]),
+    # Newline before done
+    ("for f in a b; do echo $f\ndone", [["echo", "$f"]]),
+    # Invalid variable names
+    ("for $(cmd) in a; do echo; done", None),
+    ("for f${x} in a; do echo; done", None),
+    ('for "f" in a; do echo; done', None),
+    # Invalid item list (separator between items)
+    ("for f in a; b; do echo; done", None),
 
     # --- unsupported: arithmetic ---
     ("echo $((1+2))", None),
@@ -249,8 +269,11 @@ TEST_CASES = [
     ("Bash", {"command": "diff <(ls a) <(ls b)"}, True),
     # --- denied: process substitution with disallowed commands ---
     ("Bash", {"command": "diff <(rm a) <(ls b)"}, False),
-    # --- denied: for loops ---
-    ("Bash", {"command": "for f in a b; do echo $f; done"}, False),
+    # --- for loops ---
+    ("Bash", {"command": "for f in a b; do echo $f; done"}, True),
+    ("Bash", {"command": "for f in a; do rm $f; done"}, False),
+    ("Bash", {"command": "for f in $(rm /); do echo $f; done"}, False),
+    ("Bash", {"command": "for f in $(ls); do echo $f; done"}, True),
 ]
 
 
