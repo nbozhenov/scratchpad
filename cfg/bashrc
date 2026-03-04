@@ -137,7 +137,8 @@ function y-gen-ps1 {
     # collect jobs
     local jobs=$(jobs -l)
 
-    local first_part="${last_color}${last_full}${no_color}\n"
+    local first_part="${last_color}${last_full}${no_color}   "
+    local current_time_part="${grey}@ $(date "+%x %H:%M")${no_color}\n"
     local second_part=${jobs:+"${bpurple}[ $(jobs | wc -l) ]${no_color} "}
 
     # check version control systems
@@ -150,7 +151,7 @@ function y-gen-ps1 {
 
     local third_part="${prompt_color}${user}@${host}:${pwdir}${no_color}\n"
     local fourth_part="${prompt_color}${prompt} ${no_color}"
-    PS1="${first_part}${third_part}${second_part}${fourth_part}"
+    PS1="${first_part}${current_time_part}${third_part}${second_part}${fourth_part}"
 }
 
 function y-timer-start {
