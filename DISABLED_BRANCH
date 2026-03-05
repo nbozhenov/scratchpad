@@ -1,0 +1,33 @@
+This branch exists to prevent the "local" branch from being accidentally
+pushed to the remote repository.
+
+This orphan branch has no shared history with the rest of the repo. Because
+of this, any attempt to `git push` a normal "local" branch (based on master)
+will fail with a non-fast-forward error, since the histories are unrelated.
+
+DO NOT delete this remote branch unless you want to allow pushing "local".
+
+== How this was set up ==
+
+From the repository where you want to protect a branch named "local":
+
+    # 1. Create a temporary orphan branch (no history, no files)
+    git checkout --orphan local-placeholder
+    git rm -rf .
+
+    # 2. Add this marker file and commit
+    #    (create DISABLED_BRANCH with explanatory content)
+    git add DISABLED_BRANCH
+    git commit -m "placeholder: prevent accidental push of local branch"
+
+    # 3. Push the orphan branch to the remote as "local"
+    git push origin local-placeholder:local
+    #    Use --force if a remote "local" branch already exists:
+    #    git push --force origin local-placeholder:local
+
+    # 4. Switch back to your working branch and delete the temp branch
+    git checkout local   # or master, or any other branch
+    git branch -D local-placeholder
+
+To replicate this for a different branch name, replace "local" and
+"local-placeholder" with the appropriate names throughout.
