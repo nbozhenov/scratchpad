@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -o errexit
+set -o nounset
+
+MASTER=master
+
+echodo() {
+  echo + "$@" >&2
+  "$@"
+}
+
+LOCAL=$(git rev-parse --abbrev-ref HEAD)
+if [ "${LOCAL}" = "HEAD" ]; then
+  echo "Cannot proceed with detached HEAD" >&2
+  exit 1
+fi
+
+echodo git checkout "${MASTER}"
+echodo git pull --rebase origin "${MASTER}"
+echodo git push origin "${MASTER}"
+echodo git rebase "${MASTER}" "${LOCAL}"
