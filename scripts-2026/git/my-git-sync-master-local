@@ -10,6 +10,11 @@ echodo() {
   "$@"
 }
 
+if ! git diff-index --quiet HEAD -- ; then
+  echo "error: You have unstaged changes. Please commit or stash them." >&2
+  exit 1
+fi
+
 LOCAL=$(git rev-parse --abbrev-ref HEAD)
 if [ "${LOCAL}" = "HEAD" ]; then
   echo "Cannot proceed with detached HEAD" >&2
