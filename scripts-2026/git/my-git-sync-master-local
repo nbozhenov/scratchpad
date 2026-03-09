@@ -10,6 +10,10 @@ echodo() {
   "$@"
 }
 
+# Ensure that $PWD is inside git worktree. If not, it prints an error message
+# and exits (because of errexit).
+git rev-parse --is-inside-work-tree >/dev/null
+
 if ! git diff-index --quiet HEAD -- ; then
   echo "error: You have unstaged changes. Please commit or stash them." >&2
   exit 1
