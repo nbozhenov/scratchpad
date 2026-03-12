@@ -1,0 +1,31 @@
+// config.h.in — reference template showing the format of the generated header.
+//
+// This file is NOT used directly by the build system.
+// build.ps1 reads each JSON profile and produces "generated_config.h" in this
+// same directory before invoking CMake.  After the build finishes the generated
+// file is deleted.  See build.ps1 for the generation logic.
+//
+// -----------------------------------------------------------------------------
+// Generated output format (generated_config.h):
+// -----------------------------------------------------------------------------
+
+#pragma once
+#include <windows.h>
+
+static const wchar_t* CONFIG_TARGET_EXE   = L"C:\\Path\\To\\app.exe";
+static const wchar_t* CONFIG_ARGUMENTS    = L"--some-flag value";
+static const wchar_t* CONFIG_WORKING_DIR  = L"C:\\Path\\To";
+static const wchar_t* CONFIG_AUMID        = L"MyCompany.MyApp";
+
+struct EnvVarEntry {
+    const wchar_t* name;
+    const wchar_t* value;
+    const wchar_t* mode;       // L"set" | L"append" | L"prepend"
+    const wchar_t* separator;  // delimiter used for append/prepend
+};
+
+static const EnvVarEntry CONFIG_ENV_VARS[] = {
+    { L"MY_VAR",  L"some_value",      L"set",     L";"  },
+    { L"PATH",    L"C:\\MyApp\\bin",  L"prepend", L";"  },
+};
+static const int CONFIG_ENV_VAR_COUNT = 2;

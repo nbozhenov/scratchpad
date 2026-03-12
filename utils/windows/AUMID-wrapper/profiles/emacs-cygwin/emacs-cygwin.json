@@ -1,0 +1,10 @@
+{
+  "targetExe": "C:\\cygwin64\\bin\\run.exe",
+  "arguments": "/usr/bin/bash --login -c /usr/bin/emacs-w32",
+  "workingDirectory": "C:\\cygwin64\\home\\Nikolai",
+  "appUserModelId": "emacs-cygwin",
+  "iconPath": ".\\emacs-cygwin.ico",
+  "monitorLoop": false,
+  "environmentVariables": [
+  ]
+}

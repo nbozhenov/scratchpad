@@ -1,0 +1,11 @@
+To fix quality, make sure your .ico file contains all the standard sizes as uncompressed BMP frames: 16, 24, 32, 40, 48, 64, 96, 128, 256. Tools like Greenfish Icon Editor or ImageMagick can generate these. The PNG-compressed 256×256 frame that most .ico generators put in is useless to LoadImageW
+
+The code is now as good as it can be. The quality ceiling is the source .ico file itself — if it doesn't have frames at the exact sizes Windows needs for your DPI (at 125%: 40×40 for large, 20×20 for small), LoadIconMetric scales the nearest available frame, which is what you're seeing.
+
+Check what frames are in your .ico with ImageMagick:
+
+magick identify profiles\emacs-win\emacs-win.ico
+If it only has frames like 16, 32, 48, 256, you need to regenerate it with DPI-intermediate sizes. With ImageMagick, from a high-resolution source (PNG/SVG):
+
+magick source.png -define icon:auto-resize=256,128,96,64,48,40,32,24,20,16 emacs-win.ico
+After replacing the .ico and rebuilding, LoadIconMetric will find exact-size frames at 40×40 and 20×20 and won't need to scale at all.

@@ -1,0 +1,39 @@
+{
+  "targetExe": "C:\\msys64\\ucrt64\\bin\\runemacs.exe",
+  "arguments": "",
+  "workingDirectory": "D:\\Trees",
+  "appUserModelId": "emacs-win",
+  "iconPath": ".\\emacs-win.ico",
+  "monitorLoop": false,
+  "environmentVariables": [
+    {
+      "name": "HOME",
+      "value": "C:\\msys64\\home\\Nikolai",
+      "mode": "set"
+    },
+    {
+      "name": "PATH",
+      "value": "C:\\msys64\\ucrt64\\bin",
+      "mode": "prepend",
+      "separator": ";"
+    },
+    {
+      "name": "PATH",
+      "value": "C:\\msys64\\ucrt64\\local\\bin",
+      "mode": "prepend",
+      "separator": ";"
+    },
+    {
+      "name": "PATH",
+      "value": "C:\\msys64\\local\\bin",
+      "mode": "append",
+      "separator": ";"
+    },
+	{
+      "name": "PATH",
+      "value": "C:\\msys64\\bin",
+      "mode": "append",
+      "separator": ";"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "targetExe": "C:\\msys64\\git-bash.exe",
+  "arguments": "-l -c /ucrt64/bin/runemacs.exe",
+  "workingDirectory": "C:\\msys64\\home\\Nikolai",
+  "appUserModelId": "emacs-msys2",
+  "iconPath": ".\\emacs-msys2.ico",
+  "monitorLoop": false,
+  "environmentVariables": [
+  ]
+}
